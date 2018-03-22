@@ -1,127 +1,194 @@
-#!/usr/local/bin
+#!/usr/bin/python
 
-from ansible.module_utils._text import to_bytes
-from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.urls import fetch_url, open_url
-from ansible.module_utils.basic import json
-from ansible.module_utils._text import to_native
+import requests
+import json
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 dnac_argument_spec = dict(
-    hostname=dict(type='str', required=True, aliases=['host']),
-    username=dict(type='str', default='admin', aliases=['user']),
-    password=dict(type='str', required=True, no_log=True),
-    timeout=dict(type='int', default=30),
-    use_proxy=dict(type='bool', default=True),
+    host = dict(required=True, type='str'),
+    port = dict(required=True, type='str'),
+    username = dict(required=True, type='str'),
+    password = dict(required=True, type='str'),
+    #api_path = dict(required=False, default='api/v1/commonsetting/global/', type='str'),
+    use_proxy=dict(required=False, type='bool', default=True),
     use_ssl=dict(type='bool', default=True),
-    validate_certs=dict(type='bool', default=True)
-)
+    timeout=dict(type='int', default=30),
+    validate_certs=dict(type='bool', default=True),
+    state=dict(type='str', default='present', choices=['absent', 'present', 'query'])
+    )
 
-def dnac_response_error(result):
-    ''' Set error information when found '''
-    result['error_code'] = 0
-    result['error_text'] = 'Success'
-    # Handle possible DNAC error information
-    if result['totalCount'] != '0':
-        try:
-            result['error_code'] = result['imdata'][0]['error']['attributes']['code']
-            result['error_text'] = result['imdata'][0]['error']['attributes']['text']
-        except (KeyError, IndexError):
-            pass
-
-def dnac_response_json(result, rawoutput):
-    ''' Handle DNAC JSON response output '''
-    try:
-        result.update(json.loads(rawoutput))
-    except Exception as e:
-        # Expose RAW output for troubleshooting
-        result.update(raw=rawoutput, error_code=-1, error_text="Unable to parse output as JSON, see 'raw' output. %s" % e)
-        return
-
-    # Handle possible DNAC error information
-    dnac_response_error(result)
-
-
-class DNACModule(object):
-
+class DnaCenter(object):
     def __init__(self, module):
         self.module = module
         self.params = module.params
-        self.result = dict(changed=False)
-        self.headers = None
+        self.cookie = None
+        self.session = None
 
         self.login()
 
-    def define_protocol(self):
-        ''' Set protocol based on use_ssl parameter '''
-
-        # Set protocol for further use
-        if self.params['protocol'] is None:
-            self.params['protocol'] = 'https' if self.params.get('use_ssl', True) else 'http'
-        else:
-            self.module.fail_json(msg="Parameter 'protocol' needs to be one of ( http, https )")
-
-    def define_method(self):
-        ''' Set method based on state parameter '''
-
-        # Handle deprecated method/action parameter
-        if self.params['method']:
-            # Deprecate only if state was a valid option
-            if 'state' in self.module.argument_spec:
-                self.module.deprecate("Parameter 'method' or 'action' is deprecated, please use 'state' instead", '2.6')
-            method_map = dict(delete='absent', get='query', post='present')
-            self.params['state'] = method_map[self.params['method']]
-        else:
-            state_map = dict(absent='delete', present='post', query='get')
-            self.params['method'] = state_map[self.params['state']]
-
     def login(self):
 
-        ''' Log in to DNAC '''
+        login_url = 'https://' + self.params['host'] + '/api/system/v1/auth/login/'
 
-        # Ensure protocol is set (only do this once)
-        self.define_protocol()
+        # Build the login_url to the API for logging into DNA
+        #login_url = "https://" + dna_controller + "/api/system/v1/auth/login/"
 
-        try:
-            authurl = '{0}://{1}/api/system/v1/auth/login'.format(protocol, module.params['host'])
-            authresp = open_url(authurl,
-                                headers=authheaders,
-                                method='GET',
-                                use_proxy=module.params['use_proxy'],
-                                timeout=module.params['timeout'],
-                                validate_certs=module.params['validate_certs'],
-                                url_username=module.params['username'],
-                                url_password=module.params['password'],
-                                force_basic_auth=True
-                                )
-        except Exception as e:
-            module.fail_json(msg=e)
+        # create a session object
+        self.session = requests.session()
 
-        if to_native(authresp.read()) != "success":  # DNA Center returns 'success' in the body
-            module.fail_json(msg="Authentication failed: {}".format(authresp.read()))
+        # set configuration elements
+        self.session.auth = (self.params['username'], self.params['password'])
+        self.session.verify = False
 
-        respheaders = authresp.getheaders()
-        cookie = None
+        # send to controller
+        self.response = self.session.get(login_url)
 
-        for i in respheaders:
-            if i[0] == 'Set-Cookie':
-                cookie_split = i[1].split(';')
-                cookie = cookie_split[0]
+        # update the headers with received sessions cookies
+        self.session.headers.update({'cookie': self.response.headers['Set-Cookie']})
 
-        if cookie is None:
-            module.fail_json(msg="Cookie not assigned from DNA Center")
+        # set the content-type
+        self.session.headers.update({'content-type' : 'application/json'})
 
-        headers['Cookie'] = cookie
+        #print(session.headers)
 
-        print(authresp.read())
+        # provide session object to functions
+        return self.session
+
+    def get_global_credentials(self):
+
+        """
+            This function retrieves all credentials for the specified subType.
+
+            Requirements:
+            -------------
+            You must call the session object prior to calling this function.
+            A successfully established connection is required.
+
+            Parameters:
+            -----------
+            session - the session object from the getSessionObj function
+            dna_controller - either IP address or fqdn of the target controller
+            credential_type - the type of credential to retrieve using the subTypes below
+
+            Credential type as CLI / SNMPV2_READ_COMMUNITY /
+            SNMPV2_WRITE_COMMUNITY / SNMPV3 / HTTP_WRITE /
+            HTTP_READ / NETCONF
+        """
+
+        # update url for new api call
+        url = "https://" + self.params['host'] + "/api/v1/global-credential"
+
+        # set the query parameters
+        self.session.params = {'credentialSubType':self.params['credential_type']}
+        response = self.session.get(url)
+        return response.json()
+
+    def create_global_credential(self):
+        """
+            This function creates a new CLI credential.
+
+            Requirements:
+            -------------
+            You must call the session object prior to calling this function.
+            A successfully established connection is required.
+
+            Parameters:
+            -----------
+            session - the session object from the getSessionObj function
+            dna_controller - either IP address or fqdn of the target controller
+            cli_cred - dictionary of the parameters needed to create the credential
+
+            dictCred = [{
+                        "description":"string",
+                        "username":"string",
+                        "password":"string",
+                        "enablePassword":"string"}
+        """
+
+        #dict_creds = json.dumps(dict_creds)
+
+        url = "https://" + self.params['host'] + "/api/v1/global-credential/" + self.params['path']
+        response = self.session.request(method='POST', url=url, json=self.params['dict_creds'], verify=False)
+        return response
+
+    def create_snmp_read_credential(self):
+
+        """
+            This function creates a new SNMP READ credential.
+
+            Requirements:
+            -------------
+            You must call the session object prior to calling this function.
+            A successfully established connection is required.
+
+            Parameters:
+            -----------
+            session - the session object from the getSessionObj function
+            dna_controller - either IP address or fqdn of the target controller
+            snmp_read_cred - dictionary of the parameters needed to create the credential
+
+            Example Dictionary
+            ------------------
+            snmp_read_cred = [
+                {
+                "readCommunity": "SNMP-READ-JA1",
+    		    "description": "test2"
+                }
+            ]
+        """
+        print(self.params['dict_creds'])
+        url = "https://" + self.params['host'] + "/api/v1/global-credential/" + self.params['path']
+        response = self.session.request(method='POST', url=url, json=self.params['dict_creds'], verify=False)
+        return response
+
+    def get_common_settings(self, payload):
+
+                url = "https://" + self.params['host'] + '/' + self.params['api_path'].rstrip('/') + '/' + payload[0]['groupUuid']
+                response = self.session.request(method='GET', url=url)
+                return response
+
+    def set_common_settings(self, payload):
+
+        """
+            This function sets the global settings in the network design workflow.
+
+            The model below is how to activate a reference to another object.  An example is
+            setting which SNMP credential is used
+           {
+            "instanceType": "reference",
+            "instanceUuid": "",
+            "namespace": "global",
+            "type": "reference.setting",
+            "key": "credential.snmp_v2_read",
+            "version": 7,
+            "value": [
+                {
+                    "objReferences": [
+                        "a31b28c4-6bcd-4667-a2e2-b74e38572498"
+                    ],
+                    "type": "credential_snmp_v2_read",
+                    "url": ""
+                }
+            ],
+            "groupUuid": "-1",
+            "inheritedGroupUuid": "",
+            "inheritedGroupName": ""
+        }
+        """
+
+        url = "https://" + self.params['host'] + '/' + self.params['api_path'].rstrip('/') + '/' + payload[0]['groupUuid']
+        response = self.session.request(method='POST', url=url, json=payload)
+        return response
+
+def main():
+    pass
+    # print("in main")
+    # params = {'username':'admin', 'password':'M0bility@ccess','host':'10.253.176.237'}
+    # dnac = DnaCenter(params)
+    # session = dnac.login(params)
+    # creds = dnac.get_global_credentials(session,params['host'],'CLI')
+    # print(creds)
 
 if '__name__' == '__main__':
-    mod_args = {}
-    mod_args['params'] = {'timeout':'30',
-                        'use_proxy': True,
-                        'method': "GET",
-                        'state':'present',
-                        'username':'admin',
-                        'password':'M0bility@ccess',
-                        'host':'10.253.176.237'
-                        }
-    dnac = DNACModule(mod_args)
+    main()
