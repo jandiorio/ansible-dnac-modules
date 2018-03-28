@@ -1,7 +1,7 @@
 # ansible_dnac
 
-EXAMPLES
-----------
+## EXAMPLES
+```
 - name: test my new module
   connection: local
   hosts: localhost
@@ -75,3 +75,5 @@ EXAMPLES
         username: admin
         password: M0bility@ccess
         timezone: America/Chicago
+
+  ```
