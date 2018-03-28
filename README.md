@@ -1,6 +1,8 @@
 # ansible_dnac
 
 ## EXAMPLES
+The examples below set the common-settings in the DNA Center Design workflow
+
 ```
 - name: test my new module
   connection: local
@@ -14,7 +16,7 @@
         host: 10.253.176.237
         port: 443
         username: admin
-        password: M0bility@ccess
+        password: *****
         banner_message: "created by a new ansible module for banners"
 
     - name: set the ntp server
@@ -22,7 +24,7 @@
         host: 10.253.176.237
         port: 443
         username: admin
-        password: M0bility@ccess
+        password: *****
         ntp_server: 192.168.200.1
 
     - name: set the dhcp server
@@ -30,7 +32,7 @@
         host: 10.253.176.237
         port: 443
         username: admin
-        password: M0bility@ccess
+        password: *****
         dhcp_server: 192.168.200.1
 
     - name: set the dns server and domain name
@@ -38,7 +40,7 @@
         host: 10.253.176.237
         port: 443
         username: admin
-        password: M0bility@ccess
+        password: *****
         primary_dns_server: 192.168.200.1
         secondary_dns_server: 192.168.200.2
         domain_name: wwtatc.local
@@ -48,7 +50,7 @@
         host: 10.253.176.237
         port: 443
         username: admin
-        password: M0bility@ccess
+        password: *****
         syslog_server: 172.31.3.237
 
     - name: set the snmp server
@@ -56,7 +58,7 @@
         host: 10.253.176.237
         port: 443
         username: admin
-        password: M0bility@ccess
+        password:  *****
         snmp_server: 172.31.3.237
 
     - name: set the netflow
@@ -64,7 +66,7 @@
         host: 10.253.176.237
         port: 443
         username: admin
-        password: M0bility@ccess
+        password: *****
         netflow_collector: 172.31.3.237
         netflow_port: 6007
 
@@ -73,7 +75,7 @@
         host: 10.253.176.237
         port: 443
         username: admin
-        password: M0bility@ccess
+        password: *****
         timezone: America/Chicago
 
   ```
