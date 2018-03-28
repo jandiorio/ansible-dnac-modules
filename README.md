@@ -79,3 +79,81 @@ The examples below set the common-settings in the DNA Center Design workflow
         timezone: America/Chicago
 
   ```
+
+For testing purposes this example shows the removal of the settings.  
+
+```
+---
+- name: test my new module
+  connection: local
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: set the banner  
+      dnac_banner:
+        host: 10.253.176.237
+        port: 443
+        username: admin
+        password: M0bility@ccess
+        banner_message: ""
+
+    - name: set the ntp server
+      dnac_ntp:
+        host: 10.253.176.237
+        port: 443
+        username: admin
+        password: M0bility@ccess
+        ntp_server: ""
+
+    - name: set the dhcp server
+      dnac_dhcp:
+        host: 10.253.176.237
+        port: 443
+        username: admin
+        password: M0bility@ccess
+        dhcp_server: ""
+
+    - name: set the dns server and domain name
+      dnac_dns:
+        host: 10.253.176.237
+        port: 443
+        username: admin
+        password: M0bility@ccess
+        primary_dns_server: ""
+        secondary_dns_server: ""
+        domain_name: wwtatc.local
+
+    - name: set the syslog server
+      dnac_syslog:
+        host: 10.253.176.237
+        port: 443
+        username: admin
+        password: M0bility@ccess
+        syslog_server: ""
+
+    - name: set the snmp server
+      dnac_snmp:
+        host: 10.253.176.237
+        port: 443
+        username: admin
+        password: M0bility@ccess
+        snmp_server: ""
+
+    - name: set the netflow
+      dnac_netflow:
+        host: 10.253.176.237
+        port: 443
+        username: admin
+        password: M0bility@ccess
+        netflow_collector: ""
+        netflow_port: ""
+
+    - name: set the netflow
+      dnac_timezone:
+        host: 10.253.176.237
+        port: 443
+        username: admin
+        password: M0bility@ccess
+        timezone: ""
+```
