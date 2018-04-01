@@ -130,6 +130,7 @@ class DnaCenter(object):
         url = "https://" + self.params['host'] + "/api/v1/global-credential/" + _url_suffix
         response = self.session.request(method='POST', url=url, json=payload, verify=False)
         return response
+
     def update_global_credential(self, payload):
 
         _url_suffix = ''
