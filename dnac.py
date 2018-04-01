@@ -14,8 +14,8 @@ dnac_argument_spec = dict(
     use_proxy=dict(required=False, type='bool', default=True),
     use_ssl=dict(type='bool', default=True),
     timeout=dict(type='int', default=30),
-    validate_certs=dict(type='bool', default=True),
-    state=dict(type='str', default='present', choices=['absent', 'present', 'query'])
+    validate_certs=dict(type='bool', default=False),
+    state=dict(type='str', default='present', choices=['absent', 'present', 'update', 'query'])
     )
 
 class DnaCenter(object):
@@ -55,7 +55,7 @@ class DnaCenter(object):
         # provide session object to functions
         return self.session
 
-    def get_global_credentials(self):
+    def get_global_credentials(self, payload):
 
         """
             This function retrieves all credentials for the specified subType.
@@ -77,14 +77,14 @@ class DnaCenter(object):
         """
 
         # update url for new api call
-        url = "https://" + self.params['host'] + "/api/v1/global-credential"
+        url = "https://" + self.params['host'] + "/" + self.params['api_path']
 
         # set the query parameters
-        self.session.params = {'credentialSubType':self.params['credential_type']}
+        self.session.params = {'credentialSubType': self.params['credential_type']}
         response = self.session.get(url)
         return response.json()
 
-    def create_global_credential(self):
+    def create_global_credential(self, payload):
         """
             This function creates a new CLI credential.
 
@@ -105,11 +105,57 @@ class DnaCenter(object):
                         "password":"string",
                         "enablePassword":"string"}
         """
-
+        '''
+        CLI / SNMPV2_READ_COMMUNITY /
+        SNMPV2_WRITE_COMMUNITY / SNMPV3 / HTTP_WRITE /
+        HTTP_READ / NETCONF
+        '''
+        _url_suffix = ''
+        if self.params['credential_type'] == 'CLI':
+            _url_suffix = 'cli'
+        elif self.params['credential_type'] == 'SNMPV2_READ_COMMUNITY':
+            _url_suffix = 'snmpv2-read-community'
+        elif self.params['credential_type'] == 'SNMPV2_WRITE_COMMUNITY':
+            _url_suffix = 'snmpv2-write-community'
+        elif self.params['credential_type'] == 'SNMPV3':
+            _url_suffix = 'snmpv3'
+        elif self.params['credential_type'] == 'HTTP_WRITE':
+            _url_suffix = 'http-write'
+        elif self.params['credential_type'] == 'HTTP_READ':
+            _url_suffix = 'http-read'
+        elif self.params['credential_type'] == 'NETCONF':
+            _url_suffix = 'netconf'
         #dict_creds = json.dumps(dict_creds)
 
-        url = "https://" + self.params['host'] + "/api/v1/global-credential/" + self.params['path']
-        response = self.session.request(method='POST', url=url, json=self.params['dict_creds'], verify=False)
+        url = "https://" + self.params['host'] + "/api/v1/global-credential/" + _url_suffix
+        response = self.session.request(method='POST', url=url, json=payload, verify=False)
+        return response
+    def update_global_credential(self, payload):
+
+        _url_suffix = ''
+        if self.params['credential_type'] == 'CLI':
+            _url_suffix = 'cli'
+        elif self.params['credential_type'] == 'SNMPV2_READ_COMMUNITY':
+            _url_suffix = 'snmpv2-read-community'
+        elif self.params['credential_type'] == 'SNMPV2_WRITE_COMMUNITY':
+            _url_suffix = 'snmpv2-write-community'
+        elif self.params['credential_type'] == 'SNMPV3':
+            _url_suffix = 'snmpv3'
+        elif self.params['credential_type'] == 'HTTP_WRITE':
+            _url_suffix = 'http-write'
+        elif self.params['credential_type'] == 'HTTP_READ':
+            _url_suffix = 'http-read'
+        elif self.params['credential_type'] == 'NETCONF':
+            _url_suffix = 'netconf'
+        #dict_creds = json.dumps(dict_creds)
+
+        url = "https://" + self.params['host'] + "/api/v1/global-credential/" + _url_suffix
+        response = self.session.request(method='PUT', url=url, json=payload, verify=False)
+        return response
+
+    def delete_global_credentials(self, cred_id):
+        url = "https://" + self.params['host'] + "/api/v1/global-credential/" + cred_id
+        response = self.session.request(method='DELETE', url=url, verify=False)
         return response
 
     def create_snmp_read_credential(self):

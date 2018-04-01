@@ -70,7 +70,9 @@ def main():
     for setting in settings['response']:
         if setting['key'] == payload[0]['key']:
             if setting['value'] != '':
-                if setting['value'] != payload[0]['value']:
+                if setting['value'][0]['ipAddress'] != payload[0]['value'][0]['ipAddress'] and
+                    setting['value'][0]['port'] != payload[0]['value'][0]['netflow_port']:
+                #if setting['value'] != payload[0]['value']:
                     response = dnac.set_common_settings(payload)
                     if response.status_code not in [200, 201, 202]:
                         result['changed'] = False
