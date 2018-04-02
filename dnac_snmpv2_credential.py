@@ -43,10 +43,14 @@ def main():
         argument_spec = module_args,
         supports_check_mode = False
         )
+    if module.params['credential_type'] == 'SNMPV2_WRITE_COMMUNITY':
+        _community_key_name = 'writeCommunity'
+    elif module.params['credential_type'] == 'SNMPV2_READ_COMMUNITY':
+        _community_key_name = 'readCommunity'
 
     #  Build the payload dictionary
     payload = [
-      {"writeCommunity": module.params['snmp_community'],
+      {_community_key_name: module.params['snmp_community'],
         "description": module.params['snmp_description'],
         "comments": module.params['snmp_comments']
       }
@@ -71,10 +75,10 @@ def main():
             if module.params['state'] == 'absent':
                 dnac.delete_global_credentials(setting['id'])
                 result['changed'] = True
-                result['msg'] = 'User Deleted.'
+                result['msg'] = 'Credential Deleted.'
                 module.exit_json(**result)
             elif module.params['state'] == 'update':
-                # call update function
+                # call update function - UPDATE CURRENTLY NOT FUNCTIONAL
                 payload = payload[0].update({'id': setting['id']})
                 response = dnac.update_global_credential(payload)
                 if response.status_code not in [200, 201, 202]:
