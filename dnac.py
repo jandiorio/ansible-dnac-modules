@@ -228,14 +228,28 @@ class DnaCenter(object):
         response = self.session.request(method='POST', url=url, json=payload)
         return response
 
+    def get_group(self, payload):
+
+        url = "https://" + self.params['host'] + '/' + self.params['api_path'].rstrip('/')
+        response = self.session.get(url)
+        return response.json()
+
+
+    def create_group(self, payload):
+
+        payload = json.dumps(payload)
+        url = "https://" + self.params['host'] + '/' + self.params['api_path'].rstrip('/')
+        response = self.session.post(url, data=payload)
+        return response
+
+    def delete_group(self, payload):
+
+        url = "https://" + self.params['host'] + '/' + self.params['api_path'].rstrip('/') + '/' + payload
+        response = self.session.delete(url)
+        return response
+
 def main():
     pass
-    # print("in main")
-    # params = {'username':'admin', 'password':'M0bility@ccess','host':'10.253.176.237'}
-    # dnac = DnaCenter(params)
-    # session = dnac.login(params)
-    # creds = dnac.get_global_credentials(session,params['host'],'CLI')
-    # print(creds)
 
 if '__name__' == '__main__':
     main()
