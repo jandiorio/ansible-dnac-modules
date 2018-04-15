@@ -1,9 +1,9 @@
 # ansible_dnac
 
 ## Requirements
-Copy file 'dnac.py' to /usr/lib/python2.7/dist-packages/ansible/module_utils/ folder
-Copy all other *.py files to the location of your ansible custom modules. (mine is /usr/share/ansible
-installation of geopy to resolve building addresses and populate lat/long
+- Copy file 'dnac.py' to /usr/lib/python2.7/dist-packages/ansible/module_utils/ folder
+- Copy all other *.py files to the location of your ansible custom modules. (mine is /usr/share/ansible
+- installation of geopy to resolve building addresses and populate lat/long
 
 ## EXAMPLES
 The examples below set the common-settings in the DNA Center Design workflow
