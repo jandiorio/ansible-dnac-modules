@@ -2,6 +2,7 @@
 
 import requests
 import json
+import time
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
@@ -54,6 +55,22 @@ class DnaCenter(object):
 
         # provide session object to functions
         return self.session
+
+    def task_checker(self, task_id):
+
+        # task_checker will loop until the given task completes and return the results of the task execution
+        url = 'https://' + self.params['host'] + '/' + 'api/v1/task/' + task_id
+        response = self.session.get(url)
+        response = response.json()
+        response = response['response']
+
+        while not response.get('endTime'):
+            time.sleep(2)
+            response = self.session.get(url)
+            response = response.json()
+            response = response['response']
+
+        return response
 
     def get_global_credentials(self, payload):
 
@@ -247,6 +264,30 @@ class DnaCenter(object):
         url = "https://" + self.params['host'] + '/' + self.params['api_path'].rstrip('/') + '/' + payload
         response = self.session.delete(url)
         return response
+
+    def get_ippool(self, payload):
+
+        url = 'https://' + self.params['host'] + '/' + self.params['api_path'].rstrip('/')
+        response = self.session.get(url)
+        return response.json()
+
+    def create_ippool(self, payload):
+
+        payload = json.dumps(payload)
+        url = "https://" + self.params['host'] + '/' + self.params['api_path'].rstrip('/')
+        response = self.session.post(url, data=payload)
+        if response.status_code in [200, 201, 202]:
+            response = response.json()
+            task_response = self.task_checker(response['response']['taskId'])
+
+        return task_response
+
+    def delete_ippool(self, payload):
+
+        url = 'https://' + self.params['host'] + '/' + self.params['api_path'].rstrip('/') + '/' + payload
+        response = self.session.delete(url)
+        return response
+
 
 def main():
     pass
