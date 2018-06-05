@@ -78,15 +78,15 @@ def main():
         "dhcpServerIps": module.params['ip_pool_dhcp_server_ips'].split(','),
         "dnsServerIps": module.params['ip_pool_dns_server_ips'].split(','),
         "overlapping":  module.params['ip_pool_overlapping']
-    }
+        }
 
     # Instantiate the DnaCenter class object
     dnac = DnaCenter(module)
-
+    dnac.api_path = 'api/v2/ippool'
     # check if the configuration is already in the desired state
 
     #  Get the ip pools
-    ip_pools = dnac.get_ippool(payload)
+    ip_pools = dnac.get_obj()
 
     _ip_pool_names = [pool['ipPoolName'] for pool in ip_pools['response']]
 
@@ -101,27 +101,27 @@ def main():
         result['changed'] = False
         module.exit_json(msg='IP Pool already exists.', **result)
     elif module.params['state'] == 'present' and not _ip_pool_exists:
-        create_ip_pool_results = dnac.create_ippool(payload)
+        create_ip_pool_results = dnac.create_obj(payload)
         if create_ip_pool_results.get('isError') == False:
             result['changed'] = True
-            result['original_message'] = create_ip_pool_results['progress']
+            result['original_message'] = create_ip_pool_results
             module.exit_json(msg='Ip pool Created Successfully.', **result)
-        if create_ip_pool_results.get('isError') == True:
+        elif create_ip_pool_results.get('isError') == True:
             result['changed'] = False
             result['original_message'] = create_ip_pool_results
             module.fail_json(msg='Failed to create ip pool!', **result)
     elif module.params['state'] == 'absent' and _ip_pool_exists:
         _ip_pool_id = [pool['id'] for pool in ip_pools['response'] if pool['ipPoolName'] == module.params['ip_pool_name']]
-        delete_ip_pool_results = dnac.delete_ippool(_ip_pool_id[0])
-        if delete_ip_pool_results.status_code in [200,201,202]:
+        delete_ip_pool_results = dnac.delete_obj(_ip_pool_id[0])
+        if delete_ip_pool_results.get('isError') == False:
             result['changed'] = True
-            result['status_code'] = delete_ip_pool_results.status_code
-            result['original_message'] = delete_ip_pool_results.json()
+            # result['status_code'] = delete_ip_pool_results['response']
+            result['original_message'] = delete_ip_pool_results
             module.exit_json(msg='IP pool Deleted Successfully.', **result)
-        else:
+        elif create_ip_pool_results.get('isError') == True:
             result['changed'] = False
-            result['status_code'] = delete_ip_pool_results.status_code
-            result['original_message'] = delete_ip_pool_results.json()
+            # result['status_code'] = delete_ip_pool_results.status_code
+            result['original_message'] = delete_ip_pool_results
             module.fail_json(msg='Failed to delete ip pool.', **result)
     elif module.params['state'] == 'absent' and not _ip_pool_exists:
         result['changed'] = False
