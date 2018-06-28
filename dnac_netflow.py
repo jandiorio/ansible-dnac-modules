@@ -25,11 +25,12 @@ from ansible.module_utils.dnac import DnaCenter,dnac_argument_spec
 # -----------------------------------------------
 
 def main():
+    _setting_exists = False
     module_args = dnac_argument_spec
     module_args.update(
-        api_path = dict(required=False, default='api/v1/commonsetting/global/', type='str'),
         netflow_collector=dict(type='str', required=True),
-        netflow_port=dict(type='str', required=True)
+        netflow_port=dict(type='str', required=True),
+        group_name=dict(type='str',default='-1')
         )
 
     result = dict(
@@ -61,34 +62,54 @@ def main():
 
     # instansiate the dnac class
     dnac = DnaCenter(module)
-    #
+
+    # obtain the groupUuid and update the payload dictionary
+    if module.params['group_name'] == '-1':
+        group_id = '-1'
+    else:
+        group_id = dnac.get_group_id(module.params['group_name'])
+
+    payload[0].update({'groupUuid' : group_id})
+
+    # set the api_path
+    dnac.api_path = 'api/v1/commonsetting/global/' + group_id
+
     # # check if the configuration is already in the desired state
-    settings = dnac.get_common_settings(payload)
-    settings = settings.json()
-    #settings = json.loads(settings)
+    settings = dnac.get_obj()
 
     for setting in settings['response']:
         if setting['key'] == payload[0]['key']:
+            _setting_exists == True
             if setting['value'] != '':
-                if setting['value'][0]['ipAddress'] != payload[0]['value'][0]['ipAddress'] and
-                    setting['value'][0]['port'] != payload[0]['value'][0]['netflow_port']:
-                #if setting['value'] != payload[0]['value']:
-                    response = dnac.set_common_settings(payload)
-                    if response.status_code not in [200, 201, 202]:
-                        result['changed'] = False
-                        result['status_code'] = response.status_code
-                        result['msg'] = response.json()
-                        module.fail_json(msg="Status Code not 200", **result)
-                    else:
+                if setting['value'][0]['ipAddress'] != payload[0]['value'][0]['ipAddress'] and \
+                    setting['value'][0]['port'] != payload[0]['value'][0]['port']:
+
+                    response = dnac.create_obj(payload)
+                    if not response.get('isError'):
                         result['changed'] = True
-                        result['msg'] = response.json()
-                        result['status_code'] = response.status_code
-                        module.exit_json(**result)
+                        result['original_message'] = response
+                        module.exit_json(msg='Created netflow settings successfully.', **result)
+                    elif response.get('isError'):
+                        result['changed'] = False
+                        result['original_message'] = response
+                        module.fail_json(msg='Failed to create netflow settings!', **result)
                 else:
                     result['changed'] = False
                     result['msg'] = 'Already in desired state.'
                     module.exit_json(**result)
 
+    if not _setting_exists:
+        response = dnac.create_obj(payload)
+
+        if not response.get('isError'):
+            result['changed'] = True
+            result['original_message'] = response
+            module.exit_json(msg='netflow settings created successfully.', **result)
+
+        elif response.get('isError'):
+            result['changed'] = False
+            result['original_message'] = response
+            module.fail_json(msg='Failed to create netflow settings!', **result)
 
 main()
 

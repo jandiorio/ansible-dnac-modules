@@ -14,7 +14,6 @@ Copyright (c) 2018 World Wide Technology, Inc.
 """
 
 from ansible.module_utils.basic import AnsibleModule
-#import ansible.module_utils.dnac
 from ansible.module_utils.dnac import DnaCenter,dnac_argument_spec
 
 # -----------------------------------------------
@@ -25,10 +24,12 @@ from ansible.module_utils.dnac import DnaCenter,dnac_argument_spec
 # -----------------------------------------------
 
 def main():
+    _setting_exists = False
     module_args = dnac_argument_spec
     module_args.update(
-        api_path = dict(required=False, default='api/v1/commonsetting/global/', type='str'),
-        timezone=dict(type='str', required=True)
+        timezone=dict(type='str', default='GMT'),
+        group_name=dict(type='str', default='-1'),
+        location=dict(type='str')
         )
 
     result = dict(
@@ -49,7 +50,7 @@ def main():
         "type": "timezone.setting",
         "key":"timezone.site",
         "value":[
-            module.params['timezone']
+            ""
           ],
         "groupUuid":"-1",
         "inheritedGroupUuid": "",
@@ -59,32 +60,64 @@ def main():
 
     # instansiate the dnac class
     dnac = DnaCenter(module)
-    #
+
+    # obtain the groupUuid and update the payload dictionary
+    if module.params['group_name'] == '-1':
+        group_id = '-1'
+    else:
+        group_id = dnac.get_group_id(module.params['group_name'])
+
+    if group_id:
+        payload[0].update({'groupUuid': group_id})
+    else:
+        result['changed'] = False
+        result['original_message'] = group_id
+        module.fail_json(msg='Failed to create timezone! Unable to locate group provided.', **result)
+
+    # update payload with timezone
+    if module.params['location']:
+        timezone = dnac.timezone_lookup(module.params['location'])
+    else:
+        timezone = module.params['timezone']
+
+    payload[0].update({'value': [timezone]})
+
     # # check if the configuration is already in the desired state
-    settings = dnac.get_common_settings(payload)
-    settings = settings.json()
-    #settings = json.loads(settings)
+    dnac.api_path = 'api/v1/commonsetting/global/' + group_id
+    settings = dnac.get_obj()
 
     for setting in settings['response']:
         if setting['key'] == payload[0]['key']:
+            _setting_exists = True
             if setting['value'] != '':
                 if setting['value'] != payload[0]['value']:
-                    response = dnac.set_common_settings(payload)
-                    if response.status_code not in [200, 201, 202]:
-                        result['changed'] = False
-                        result['status_code'] = response.status_code
-                        result['msg'] = response.json()
-                        module.fail_json(msg="Status Code not 200", **result)
-                    else:
+                    response = dnac.create_obj(payload)
+                    #print(response)
+                    if not response.get('isError'):
                         result['changed'] = True
-                        result['msg'] = response.json()
-                        result['status_code'] = response.status_code
-                        module.exit_json(**result)
+                        result['original_message'] = response
+                        module.exit_json(msg='Created timezone successfully.', **result)
+                    elif response.get('isError'):
+                        result['changed'] = False
+                        result['original_message'] = response
+                        module.fail_json(msg='Failed to create timezone!', **result)
                 else:
                     result['changed'] = False
                     result['msg'] = 'Already in desired state.'
                     module.exit_json(**result)
 
+    if not _setting_exists:
+        response = dnac.create_obj(payload)
+
+        if not response.get('isError'):
+            result['changed'] = True
+            result['original_message'] = response
+            module.exit_json(msg='timezone created successfully.', **result)
+
+        elif response.get('isError'):
+            result['changed'] = False
+            result['original_message'] = response
+            module.fail_json(msg='Failed to create timezone!', **result)
 main()
 
 if __name__ == "__main__":

@@ -25,9 +25,10 @@ from ansible.module_utils.dnac import DnaCenter,dnac_argument_spec
 # -----------------------------------------------
 
 def main():
+    _setting_exists = False
     module_args = dnac_argument_spec
     module_args.update(
-        api_path = dict(required=False, default='api/v1/commonsetting/global/', type='str'),
+        group_name=dict(type='str',default='-1'),
         snmp_server=dict(type='str', required=True)
         )
 
@@ -59,31 +60,59 @@ def main():
 
     # instansiate the dnac class
     dnac = DnaCenter(module)
-    #
+
+    # obtain the groupUuid and update the payload dictionary
+    if module.params['group_name'] == '-1':
+        group_id = '-1'
+    else:
+        group_id = dnac.get_group_id(module.params['group_name'])
+
+    if group_id:
+        payload[0].update({'groupUuid': group_id})
+    else:
+        result['changed'] = False
+        result['original_message'] = group_id
+        module.fail_json(msg='Failed to create SNMP server! Unable to locate group provided.', **result)
+
+    # Support multiple snmp servers
+    _snmp_server = module.params['snmp_server'].split(' ')
+    payload[0].update({'value': _snmp_server})
+
     # # check if the configuration is already in the desired state
-    settings = dnac.get_common_settings(payload)
-    settings = settings.json()
-    #settings = json.loads(settings)
+    dnac.api_path = 'api/v1/commonsetting/global/' + group_id
+    settings = dnac.get_obj()
 
     for setting in settings['response']:
         if setting['key'] == payload[0]['key']:
+            _setting_exists = True
             if setting['value'] != '':
                 if setting['value'] != payload[0]['value']:
-                    response = dnac.set_common_settings(payload)
-                    if response.status_code not in [200, 201, 202]:
-                        result['changed'] = False
-                        result['status_code'] = response.status_code
-                        result['msg'] = response.json()
-                        module.fail_json(msg="Status Code not 200", **result)
-                    else:
+                    response = dnac.create_obj(payload)
+                    if response.get('isError') == False:
                         result['changed'] = True
-                        result['msg'] = response.json()
-                        result['status_code'] = response.status_code
-                        module.exit_json(**result)
+                        result['original_message'] = response
+                        module.exit_json(msg='Created SNMP server successfully.', **result)
+                    elif response.get('isError') == True:
+                        result['changed'] = False
+                        result['original_message'] = response
+                        module.fail_json(msg='Failed to create SNMP server!', **result)
                 else:
                     result['changed'] = False
                     result['msg'] = 'Already in desired state.'
                     module.exit_json(**result)
+
+    if _setting_exists == False:
+        response = dnac.create_obj(payload)
+
+        if response.get('isError') == False:
+            result['changed'] = True
+            result['original_message'] = response
+            module.exit_json(msg='SNMP Server created successfully.', **result)
+
+        elif response.get('isError') == True:
+            result['changed'] = False
+            result['original_message'] = response
+            module.fail_json(msg='Failed to create SNMP Server!', **result)
 
 
 main()

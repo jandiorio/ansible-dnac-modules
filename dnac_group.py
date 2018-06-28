@@ -1,37 +1,180 @@
 #!/usr/local/python
-# -*- coding: utf-8 -*-
+# Copyright (c) 2018 World Wide Technology, Inc.
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-
 
 from __future__ import absolute_import, division, print_function
-__metaclass__ = type
 
-ANSIBLE_METADATA = {'metadata_version': '1.0',
-                    'status': ['preview'],
-                    'supported_by': 'jeff andiorio'}
+ANSIBLE_METADATA = {
+    'metadata_version': '1.1',
+    'status': ['preview'],
+    'supported_by': 'community'
+}
 
-DOCUMENTATION = r'''
----
-module: dnac_group.py
-short_description: Manage groups within Cisco DNA Center
-description:  Based on 1.1+ version of DNAC API
-author:
-- Jeff Andiorio (@jandiorio)
-version_added: '2.4'
+DOCUMENTATION = '''
+
+module: dnac_group
+short_description: Add or Delete groups in DNA Center
+description:
+    - Add or delete groups in the network hierarchy within Cisco DNA Center controller.
+
+version_added: "2.5"
+author: "Jeff Andiorio (@jandiorio)"
+
+options:
+    host: 
+        description: 
+            - Host is the target Cisco DNA Center controller to execute against. 
+        required: true
+        default: null
+        choices: null
+        aliases: null
+        version_added: "2.5"
+    port: 
+        description: 
+            - Port is the TCP port for the HTTP connection. 
+        required: true
+        default: 443
+        choices: 
+            - 80
+            - 443
+        aliases: null
+        version_added: "2.5"
+    username: 
+        description: 
+            - Provide the username for the connection to the Cisco DNA Center Controller.
+        required: true
+        default: null
+        choices: null
+        aliases: null
+        version_added: "2.5"        
+    password: 
+        description: 
+            - Provide the password for connection to the Cisco DNA Center Controller.
+        required: true
+        default: null
+        choices: null
+        aliases: null
+        version_added: "2.5"
+    use_proxy: 
+        description: 
+            - Enter a boolean value for whether to use proxy or not.  
+        required: false
+        default: true
+        choices:
+            - true
+            - false
+        aliases: null
+        version_added: "2.5"
+    use_ssl: 
+        description: 
+            - Enter the boolean value for whether to use SSL or not.
+        required: false
+        default: true
+        choices: 
+            - true
+            - false
+        aliases: null
+        version_added: "2.5"
+    timeout: 
+        description: 
+            - The timeout provides a value for how long to wait for the executed command complete.
+        required: false
+        default: 30
+        choices: null
+        aliases: null
+        version_added: "2.5"
+    validate_certs: 
+        description: 
+            - Specify if verifying the certificate is desired.
+        required: false
+        default: true
+        choices: 
+            - true
+            - false
+        aliases: null
+        version_added: "2.5"
+    state: 
+        description: 
+            - State provides the action to be executed using the terms present, absent, etc.
+        required: true
+        default: present
+        choices: 
+            - present
+            - absent
+        aliases: null
+        version_added: "2.5"
+
+    group_name: 
+        description: 
+            - Name of the group to modify.  
+        required: true
+        default: null
+        choices: null
+        aliases: null
+        version_added: "2.5"
+    group_type: 
+        description: 
+            - There are two types of 
+        required: true
+        default: area
+        choices: 
+            - area
+            - building
+        aliases: null
+        version_added: "2.5"
+    group_parent_name: 
+        description: 
+            - DNS domain name of the environment within Cisco DNA Center
+        required: true
+        default: null
+        choices: null
+        aliases: null
+        version_added: "2.5"                        
+    group_building_address: 
+        description: 
+            - group_name is the name of the group in the hierarchy where you would like to apply these settings. 
+        required: false
+        default: Global
+        choices: null
+        aliases: null
+        version_added: "2.5"
+notes: 
+    - null
 requirements:
-- DNA Center 1.1+
+    - geopy
+    - TimezoneFinder
+    - requests 
 
 '''
 
-EXAMPLES = r'''
-- name: Add a new group
+EXAMPLES = '''
+
+- name: add group 
   dnac_group:
-    hostname: dnac
-    username: admin
-    password: SomeSecretPassword
-    name: NewGroupName
-    path: /Global/NewGroupName
+    host: 1.1.1.1
+    port: 443
+    username: "{{username}}"
+    password: "{{password}}"
+    state: present
+    group_name: "{{group_name}}"
+    group_type: "{{group_type}}"
+    group_parent_name: "{{group_parent_name}}"
+    group_building_address: "{{group_building_address}}"
 
+- name: delete group 
+  dnac_group:
+    host: 1.1.1.1
+    port: 443
+    username: "{{username}}"
+    password: "{{password}}"
+    state: absent
+    group_name: "{{group_name}}"
+    group_type: "{{group_type}}"
+    group_parent_name: "{{group_parent_name}}"
+    group_building_address: "{{group_building_address}}"
 
 '''
+
 
 RETURN = r'''
 #
@@ -39,8 +182,9 @@ RETURN = r'''
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.dnac import DnaCenter,dnac_argument_spec
-import json
 from geopy.geocoders import Nominatim
+
+__metaclass__ = type
 
 def parse_geo(address):
 
@@ -67,12 +211,10 @@ def main():
 
     module_args = dnac_argument_spec
     module_args.update(
-        api_path=dict(type='str',default='api/v1/group'),
         state=dict(type='str', default='present', choices=['absent', 'present', 'update']),
         group_name=dict(type='str', required=True),
-        #group_type=dict(type='str', default='SITE', choices=['SITE', 'BUILDING', 'FLOOR']),
         group_type=dict(type='str', default='area', choices=['area','building']),
-        group_parent_name=dict(type='str', default='Global'),
+        group_parent_name=dict(type='str', default='-1'),
         group_building_address=dict(type='str', default='123')
     )
 
@@ -88,24 +230,24 @@ def main():
 
     # build the required payload data structure
     payload = {
-        'childIds':[''],
-        'groupTypeList': ['SITE'],
-        'name': module.params['group_name'],
-        'parentId':'',
-        'additionalInfo':[
-            {'attributes':{'type':module.params['group_type']},
-                           'nameSpace':'Location'}
-        ]
+        "childIds":[""],
+        "groupTypeList": ["SITE"],
+        "name": module.params["group_name"],
+        "additionalInfo":[
+            {"attributes":{
+                "type":module.params["group_type"]
+            },
+            "nameSpace":"Location"}
+         ]
     }
+
 
     # Instantiate the DnaCenter class object
     dnac = DnaCenter(module)
-
-    # check if the configuration is already in the desired state
+    dnac.api_path = 'api/v1/group'
 
     #  Get the groups
-    groups = dnac.get_group(payload)
-
+    groups = dnac.get_obj()
     _group_names = [group['name'] for group in groups['response']]
 
     # does group provided exist
@@ -122,39 +264,45 @@ def main():
         module.fail_json(msg='Parent Group does not exist...')
 
     # find the parent Id specificed by the name
-    _parent_id = [ group['id'] for group in groups['response'] if group['name'] == module.params['group_parent_name']]
-    payload['parentId'] = _parent_id[0]
+    #_parent_id = [ group['id'] for group in groups['response'] if group['name'] == module.params['group_parent_name']]
+    if module.params['group_parent_name'] == 'Global' or module.params['group_parent_name'] == '-1':
+        payload.update({'parentId' : ''})
+    elif _parent_exists:
+        _parent_id = dnac.get_group_id(module.params['group_parent_name'])
+        payload.update({'parentId': _parent_id})
+    else:
+        result['changed'] = False
+        module.fail_json(msg="Parent doesn't exist!", **result)
 
     #  do some cool Geo stuffs
     if module.params['group_type'] == 'building':
         attribs = parse_geo(module.params['group_building_address'])
         payload['additionalInfo'][0]['attributes'].update(attribs)
 
-
     if module.params['state'] == 'present' and _group_exists:
         result['changed'] = False
         module.exit_json(msg='Group already exists.', **result)
     elif module.params['state'] == 'present' and not _group_exists:
-        create_group_results = dnac.create_group(payload)
-        result['changed'] = True
-        result['status_code'] = create_group_results.status_code
-        result['original_message'] = create_group_results.json()
-        if result['status_code'] not in [200, 201, 202]:
+        create_group_results = dnac.create_obj(payload)
+        if not create_group_results.get('isError'):
+            result['changed'] = True
+            result['original_message'] = create_group_results
+            module.exit_json(msg='Group Created Successfully.', **result)
+        elif create_group_results.get('isError'):
+            result['changed'] = False
+            result['original_message'] = create_group_results
             module.fail_json(msg='Failed to create group!', **result)
-        module.exit_json(msg='Group Created Successfully.', **result)
     elif module.params['state'] == 'absent' and _group_exists:
         _group_id = [group['id'] for group in groups['response'] if group['name'] == module.params['group_name']]
-        delete_group_results = dnac.delete_group(_group_id[0])
-
-        if delete_group_results.status_code in [200,201,202]:
+        delete_group_results = dnac.delete_obj(_group_id[0])
+        if delete_group_results.get('isError') == False:
             result['changed'] = True
-            result['status_code'] = delete_group_results.status_code
-            result['original_message'] = delete_group_results.json()
+            result['original_message'] = delete_group_results
             module.exit_json(msg='Group Deleted Successfully.', **result)
-        else:
+        elif delete_group_results.get('isError') == True:
             result['changed'] = False
-            result['status_code'] = delete_group_results.status_code
-            result['original_message'] = delete_group_results.json()
+            # result['status_code'] = delete_group_results.status_code
+            result['original_message'] = delete_group_results['response']
             module.fail_json(msg='Failed to delete group.', **result)
     elif module.params['state'] == 'absent' and not _group_exists:
         result['changed'] = False
