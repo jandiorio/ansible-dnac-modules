@@ -114,8 +114,5 @@ def main():
             result['original_message'] = response
             module.fail_json(msg='Failed to create SNMP Server!', **result)
 
-
-main()
-
 if __name__ == "__main__":
   main()

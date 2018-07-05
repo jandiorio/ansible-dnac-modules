@@ -352,8 +352,5 @@ def main():
         result['changed'] = False
         module.exit_json(msg='Discovery Does not exist.  Cannot delete.', **result)
 
-
-main()
-
 if __name__ == "__main__":
   main()

@@ -334,10 +334,16 @@ class DnaCenter(object):
             return response
 
     # generalized update call
-    def update_obj(self, pyaload):
+    def update_obj(self, payload):
         url = 'https://' + self.params['host'] + '/' + self.api_path.rstrip('/')
         response = self.session.request(method='PUT', url=url, json=payload, verify=False)
-        return response
+
+        if response.status_code in [200, 201, 202]:
+            r = response.json()
+            task_response = self.task_checker(r['response']['taskId'])
+            return task_response
+        else:
+            return response
 
     # Group ID lookup
     def get_group_id(self, group_name):

@@ -127,8 +127,5 @@ def main():
         result['changed'] = False
         module.exit_json(msg='Ip pool Does not exist.  Cannot delete.', **result)
 
-
-main()
-
 if __name__ == "__main__":
   main()

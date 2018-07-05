@@ -1,6 +1,9 @@
-#/usr/bin/env python3
+#!/usr/local/python
 # Copyright (c) 2018 World Wide Technology, Inc.
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
@@ -10,11 +13,10 @@ ANSIBLE_METADATA = {
 
 DOCUMENTATION = '''
 
-module: dnac_dhcp
-short_description: Add or Delete DHCP Server(s) 
+module: dnac_device_role
+short_description: Set the role of the devices in your network.  
 description:
-    - Add or delete DHCP Server(s) in the Cisco DNA Center Design Workflow.  The DHCP Severs can be different values \ 
-    at different levels in the group hierarchy.
+    - Set the device roles in the DNA Center Inventory Database. 
 
 version_added: "2.5"
 author: "Jeff Andiorio (@jandiorio)"
@@ -103,24 +105,38 @@ options:
         aliases: null
         version_added: "2.5"
 
-    dhcp_server: 
+    device_name: 
         description: 
-            - IP address of the DHCP Server to manipulate.
-        required: true
+            - name of the device in the inventory database that you would like to update
+        required: false
         default: null
         choices: null
         aliases: null
         version_added: "2.5"
-    group_name: 
+    device_mgmt_ip: 
         description: 
-            - group_name is the name of the group in the hierarchy where you would like to apply the dhcp_server. 
+            - Management IP Address of the device you would like to update 
         required: false
-        default: Global
+        default: null
         choices: null
         aliases: null
         version_added: "2.5"
+    device_role: 
+        description: 
+            - Role of the device 
+        required: true
+        default: null
+        choices: 
+            - ACCESS
+            - DISTRIBUTION
+            - CORE
+            - BORDER ROUTER
+        aliases: null
+        version_added: "2.5"
+        
 notes: 
-    - null
+    - Either device_name or device_mgmt_ip is required, but not both.  
+    
 requirements:
     - geopy
     - TimezoneFinder
@@ -130,40 +146,75 @@ requirements:
 
 EXAMPLES = '''
 
-- name: create dhcp server 
-  dnac_dhcp:
-    host: 10.253.177.230
+- name: update device role
+  dnac_device_role:
+    host: "{{host}}"
     port: 443
     username: "{{username}}"
     password: "{{password}}"
-    state: present
-    dhcp_server: 192.168.200.1 192.168.200.2
+    device_mgmt_ip: 192.168.200.1
+    device_role: "DISTRIBUTION"
 
-- name: delete dhcp server 
-  dnac_dhcp:
-    host: 10.253.177.230
+- name: update device role
+  dnac_device_role:
+    host: "{{host}}"
     port: 443
     username: "{{username}}"
     password: "{{password}}"
-    state: absent
-    dhcp_server: 192.168.200.1 192.168.200.2
+    device_name: my_switch_name
+    device_role: "DISTRIBUTION"
+    
+- name: update device role
+  dnac_device_role:
+    host: "{{host}}"
+    port: 443
+    username: "{{username}}"
+    password: "{{password}}"
+    device_mgmt_ip: "{{item.key}}"
+    device_role: "{{item.value.device_role}}"
+  with_dict: "{{roles}}"
 
+'''
+
+ANSIBLE_METADATA = {'metadata_version': '1.0',
+                    'status': ['preview'],
+                    'supported_by': 'jeff andiorio'}
+
+DOCUMENTATION = r'''
+---
+module: dnac_device_role.py
+short_description: Manage device role assignment within Cisco DNA Center
+description:  Based on 1.1+ version of DNAC API
+author:
+- Jeff Andiorio (@jandiorio)
+version_added: '2.4'
+requirements:
+- DNA Center 1.1+
+
+'''
+
+EXAMPLES = r'''
+
+!!! NEED SAMPLE  !!!
+
+'''
+
+RETURN = r'''
+#
 '''
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.dnac import DnaCenter,dnac_argument_spec
 
-# -----------------------------------------------
-#  main
-# -----------------------------------------------
-
 def main():
-    _setting_exists = False
+    _device_exists = False
+    payload = ''
     module_args = dnac_argument_spec
     module_args.update(
-        dhcp_server=dict(type='str', required=True),
-        group_name=dict(type='str', default='-1')
-        )
+        device_name=dict(type='str', required=False),
+        device_mgmt_ip=dict(type='str',required=False),
+        device_role=dict(type='str',required=True, choices=['ACCESS','DISTRIBUTION','CORE','BORDER ROUTER','UNKOWN'])
+    )
 
     result = dict(
         changed=False,
@@ -175,75 +226,34 @@ def main():
         supports_check_mode = False
         )
 
-    #  Build the payload dictionary
-    payload = [
-        {"instanceType":"ip",
-        "instanceUuid": "",
-        "namespace":"global",
-        "type": "ip.address",
-        "key":"dhcp.server",
-        "value": "",
-        "groupUuid":"-1",
-        "inheritedGroupUuid": "",
-        "inheritedGroupName": ""
-        }
-        ]
-
-    # instansiate the dnac class
+    # Instantiate the DnaCenter class object
     dnac = DnaCenter(module)
 
-    # obtain the groupUuid and update the payload dictionary
-    if module.params['group_name'] == '-1':
-        group_id = '-1'
-    else:
-        group_id = dnac.get_group_id(module.params['group_name'])
+    # Get device details based on either the Management IP or the Name Provided
+    if module.params['device_mgmt_ip'] is not None:
+        dnac.api_path = 'api/v1/network-device?managementIpAddress=' + module.params['device_mgmt_ip']
+    elif module.params['device_name'] is not None:
+        dnac.api_path = 'api/v1/network-device?hostname=' + module.params['device_name']
 
-    if group_id:
-        payload[0].update({'groupUuid': group_id})
-    else:
-        result['changed'] = False
-        result['original_message'] = group_id
-        module.fail_json(msg='Failed to create DHCP server! Unable to locate group provided.', **result)
+    device_results = dnac.get_obj()
+    current_device_role = device_results['response'][0]['role']
+    device_id = device_results['response'][0]['id']
 
-    # Support multiple DHCP servers
-    _dhcp_server = module.params['dhcp_server'].split(' ')
-    payload[0].update({'value': _dhcp_server})
-
-    # # check if the configuration is already in the desired state
-    dnac.api_path = 'api/v1/commonsetting/global/' + group_id
-    settings = dnac.get_obj()
-
-    for setting in settings['response']:
-        if setting['key'] == payload[0]['key']:
-            _setting_exists = True
-            if setting['value'] != '':
-                if setting['value'] != payload[0]['value']:
-                    response = dnac.create_obj(payload)
-                    if response.get('isError') == False:
-                        result['changed'] = True
-                        result['original_message'] = response
-                        module.exit_json(msg='Created DHCP server successfully.', **result)
-                    elif response.get('isError') == True:
-                        result['changed'] = False
-                        result['original_message'] = response
-                        module.fail_json(msg='Failed to create DHCP server!', **result)
-                else:
-                    result['changed'] = False
-                    result['msg'] = 'Already in desired state.'
-                    module.exit_json(**result)
-
-    if _setting_exists == False:
-        response = dnac.create_obj(payload)
-
-        if response.get('isError') == False:
+    if current_device_role != module.params['device_role']:
+        dnac.api_path = 'api/v1/network-device/brief'
+        payload = {'id':device_id,'role':module.params['device_role'],'roleSource':'MANUAL'}
+        device_role_results = dnac.update_obj(payload)
+        if not device_role_results.get('isError'):
             result['changed'] = True
-            result['original_message'] = response
-            module.exit_json(msg='DHCP Server created successfully.', **result)
-
-        elif response.get('isError') == True:
+            result['original_message'] = device_role_results
+            module.exit_json(msg='Device Role Updated Successfully.', **result)
+        elif device_role_results.get('isError'):
             result['changed'] = False
-            result['original_message'] = response
-            module.fail_json(msg='Failed to create DHCP Server!', **result)
+            result['original_message'] = device_role_results
+            module.fail_json(msg='Failed to Update Device Role!', **result)
+    else:
+        result['changed']=False
+        module.exit_json(msg='Device Already in desired Role')
 
 if __name__ == "__main__":
   main()

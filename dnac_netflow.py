@@ -111,7 +111,5 @@ def main():
             result['original_message'] = response
             module.fail_json(msg='Failed to create netflow settings!', **result)
 
-main()
-
 if __name__ == "__main__":
   main()

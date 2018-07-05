@@ -272,7 +272,6 @@ def main():
             result['changed'] = False
             result['original_message'] = response
             module.fail_json(msg='Failed to create DNS Server!', **result)
-main()
 
 if __name__ == "__main__":
   main()
