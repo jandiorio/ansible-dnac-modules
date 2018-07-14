@@ -12,7 +12,7 @@ dnac_argument_spec = dict(
     host = dict(required=True, type='str'),
     port = dict(required=False, type='str', default=443),
     username = dict(required=True, type='str'),
-    password = dict(required=True, type='str'),
+    password = dict(required=True, type='str',no_log=True),
     use_proxy=dict(required=False, type='bool', default=True),
     use_ssl=dict(type='bool', default=True),
     timeout=dict(type='int', default=30),
@@ -28,7 +28,7 @@ class DnaCenter(object):
         self.cookie = None
         self.session = None
         self.api_path = ''
-
+        self.response = None
         self.login()
 
 
@@ -46,7 +46,7 @@ class DnaCenter(object):
         else:
             self.__dict__[key] = value
 
-
+    # Login to DNA Center
     def login(self):
         """
         Establish a session to the DNA Center Controller.
@@ -55,10 +55,7 @@ class DnaCenter(object):
 
         """
 
-        login_url = 'https://' + self.params['host'] + '/api/system/v1/auth/login/'
-
-        # Build the login_url to the API for logging into DNA
-        #login_url = "https://" + dna_controller + "/api/system/v1/auth/login/"
+        login_url = 'https://' + self.params['host'] + '/api/system/v1/auth/token/'
 
         # create a session object
         self.session = requests.session()
@@ -68,10 +65,10 @@ class DnaCenter(object):
         self.session.verify = False
 
         # send to controller
-        self.response = self.session.get(login_url)
+        self.response = self.session.post(login_url)
 
         # update the headers with received sessions cookies
-        self.session.headers.update({'cookie': self.response.headers['Set-Cookie']})
+        self.session.headers.update({'X-Auth-Token': self.response.json()['Token']})
 
         # set the content-type
         self.session.headers.update({'content-type' : 'application/json'})
@@ -101,182 +98,6 @@ class DnaCenter(object):
             response = response['response']
 
         return response
-
-    # def get_global_credentials(self):
-    #
-    #     """
-    #         This function retrieves all credentials for the specified subType.
-    #
-    #         Requirements:
-    #         -------------
-    #         You must call the session object prior to calling this function.
-    #         A successfully established connection is required.
-    #
-    #         Parameters:
-    #         -----------
-    #         session - the session object from the getSessionObj function
-    #         dna_controller - either IP address or fqdn of the target controller
-    #         credential_type - the type of credential to retrieve using the subTypes below
-    #
-    #         Credential type as CLI / SNMPV2_READ_COMMUNITY /
-    #         SNMPV2_WRITE_COMMUNITY / SNMPV3 / HTTP_WRITE /
-    #         HTTP_READ / NETCONF
-    #     """
-    #
-    #     # update url for new api call
-    #     url = "https://" + self.params['host'] + '/api/v1/global-credential'
-    #
-    #     # set the query parameters
-    #     if credential_type != None:
-    #         self.session.params = {'credentialSubType': credential_type }
-    #     else:
-    #         self.session.params = {'credentialSubType': self.params['credential_type']}
-    #
-    #     response = self.session.get(url)
-    #     return response.json()
-
-    # def create_global_credential(self, payload):
-    #     """
-    #         This function creates a new CLI credential.
-    #
-    #         Requirements:
-    #         -------------
-    #         You must call the session object prior to calling this function.
-    #         A successfully established connection is required.
-    #
-    #         Parameters:
-    #         -----------
-    #         session - the session object from the getSessionObj function
-    #         dna_controller - either IP address or fqdn of the target controller
-    #         cli_cred - dictionary of the parameters needed to create the credential
-    #
-    #         dictCred = [{
-    #                     "description":"string",
-    #                     "username":"string",
-    #                     "password":"string",
-    #                     "enablePassword":"string"}
-    #     """
-    #     '''
-    #     CLI / SNMPV2_READ_COMMUNITY /
-    #     SNMPV2_WRITE_COMMUNITY / SNMPV3 / HTTP_WRITE /
-    #     HTTP_READ / NETCONF
-    #     '''
-    #     _url_suffix = ''
-    #     if self.params['credential_type'] == 'CLI':
-    #         _url_suffix = 'cli'
-    #     elif self.params['credential_type'] == 'SNMPV2_READ_COMMUNITY':
-    #         _url_suffix = 'snmpv2-read-community'
-    #     elif self.params['credential_type'] == 'SNMPV2_WRITE_COMMUNITY':
-    #         _url_suffix = 'snmpv2-write-community'
-    #     elif self.params['credential_type'] == 'SNMPV3':
-    #         _url_suffix = 'snmpv3'
-    #     elif self.params['credential_type'] == 'HTTP_WRITE':
-    #         _url_suffix = 'http-write'
-    #     elif self.params['credential_type'] == 'HTTP_READ':
-    #         _url_suffix = 'http-read'
-    #     elif self.params['credential_type'] == 'NETCONF':
-    #         _url_suffix = 'netconf'
-    #
-    #     url = "https://" + self.params['host'] + "/api/v1/global-credential/" + _url_suffix
-    #     response = self.session.request(method='POST', url=url, json=payload, verify=False)
-    #     return response
-    #
-    # def update_global_credential(self, payload):
-    #
-    #     _url_suffix = ''
-    #     if self.params['credential_type'] == 'CLI':
-    #         _url_suffix = 'cli'
-    #     elif self.params['credential_type'] == 'SNMPV2_READ_COMMUNITY':
-    #         _url_suffix = 'snmpv2-read-community'
-    #     elif self.params['credential_type'] == 'SNMPV2_WRITE_COMMUNITY':
-    #         _url_suffix = 'snmpv2-write-community'
-    #     elif self.params['credential_type'] == 'SNMPV3':
-    #         _url_suffix = 'snmpv3'
-    #     elif self.params['credential_type'] == 'HTTP_WRITE':
-    #         _url_suffix = 'http-write'
-    #     elif self.params['credential_type'] == 'HTTP_READ':
-    #         _url_suffix = 'http-read'
-    #     elif self.params['credential_type'] == 'NETCONF':
-    #         _url_suffix = 'netconf'
-    #     #dict_creds = json.dumps(dict_creds)
-    #
-    #     url = "https://" + self.params['host'] + "/api/v1/global-credential/" + _url_suffix
-    #     response = self.session.request(method='PUT', url=url, json=payload, verify=False)
-    #     return response
-    # #
-    # # def delete_global_credentials(self, cred_id):
-    # #     url = "https://" + self.params['host'] + "/api/v1/global-credential/" + cred_id
-    # #     response = self.session.request(method='DELETE', url=url, verify=False)
-    # #     return response
-    #
-    # def create_snmp_read_credential(self):
-    #
-    #     """
-    #         This function creates a new SNMP READ credential.
-    #
-    #         Requirements:
-    #         -------------
-    #         You must call the session object prior to calling this function.
-    #         A successfully established connection is required.
-    #
-    #         Parameters:
-    #         -----------
-    #         session - the session object from the getSessionObj function
-    #         dna_controller - either IP address or fqdn of the target controller
-    #         snmp_read_cred - dictionary of the parameters needed to create the credential
-    #
-    #         Example Dictionary
-    #         ------------------
-    #         snmp_read_cred = [
-    #             {
-    #             "readCommunity": "SNMP-READ-JA1",
-    # 		    "description": "test2"
-    #             }
-    #         ]
-    #     """
-    #
-    #     url = "https://" + self.params['host'] + "/api/v1/global-credential/" + self.params['path']
-    #     response = self.session.request(method='POST', url=url, json=self.params['dict_creds'], verify=False)
-    #     return response
-    #
-    # def get_common_settings(self, payload):
-    #
-    #             url = "https://" + self.params['host'] + '/' + self.params['api_path'].rstrip('/') + '/' + payload[0]['groupUuid']
-    #             response = self.session.request(method='GET', url=url)
-    #             return response
-    #
-    # def set_common_settings(self, payload):
-    #
-    #     """
-    #         This function sets the global settings in the network design workflow.
-    #
-    #         The model below is how to activate a reference to another object.  An example is
-    #         setting which SNMP credential is used
-    #        {
-    #         "instanceType": "reference",
-    #         "instanceUuid": "",
-    #         "namespace": "global",
-    #         "type": "reference.setting",
-    #         "key": "credential.snmp_v2_read",
-    #         "version": 7,
-    #         "value": [
-    #             {
-    #                 "objReferences": [
-    #                     "a31b28c4-6bcd-4667-a2e2-b74e38572498"
-    #                 ],
-    #                 "type": "credential_snmp_v2_read",
-    #                 "url": ""
-    #             }
-    #         ],
-    #         "groupUuid": "-1",
-    #         "inheritedGroupUuid": "",
-    #         "inheritedGroupName": ""
-    #     }
-    #     """
-    #
-    #     url = "https://" + self.params['host'] + '/' + self.params['api_path'].rstrip('/') + '/' + payload[0]['groupUuid']
-    #     response = self.session.request(method='POST', url=url, json=payload)
-    #     return response
 
     #generalized get object function
     def get_obj(self):
@@ -395,6 +216,7 @@ class DnaCenter(object):
         tf = TimezoneFinder()
         tz = tf.timezone_at(lng=location_attributes['longitude'], lat=location_attributes['latitude'])
         return tz
+
 
 def main():
     pass

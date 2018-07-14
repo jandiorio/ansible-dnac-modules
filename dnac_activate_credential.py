@@ -18,7 +18,7 @@ from ansible.module_utils.dnac import DnaCenter,dnac_argument_spec
 import requests
 
 # -----------------------------------------------
-#  define static required variales
+#  define static required variables
 # -----------------------------------------------
 # -----------------------------------------------
 #  main
@@ -58,6 +58,17 @@ def main():
         _cred_id = [cred['id'] for cred in settings['response'] if
                   cred['description'] == module.params['credential_name']]
 
+    # set key string
+    if module.params['credential_type'] == 'CLI':
+        _credential_key = 'credential.cli'
+        _credential_val_type = 'credential_cli'
+    elif module.params['credential_type'] == 'SNMPV2_READ_COMMUNITY':
+        _credential_key = 'credential.snmp_v2_read'
+        _credential_val_type = 'credential_snmp_v2_read'
+    elif module.params['credential_type'] == 'SNMPV2_WRITE_COMMUNITY':
+        _credential_key = 'credential.snmp_v2_write'
+        _credential_val_type = 'credential_snmp_v2_write'
+
     # lookup group id
     dnac.api_path = 'api/v1/group'
     groups = dnac.get_obj()['response']
@@ -77,13 +88,13 @@ def main():
             "version": "1",
             "namespace": "global",
             "groupUuid": _group_id,
-            "key": "credential.cli",
+            "key": _credential_key,
             "instanceType": "reference",
             "type": "reference.setting",
             "value":
                 [
                     {
-                        "type": "credential_cli",
+                        "type": _credential_val_type ,
                         "objReferences": [
                             _cred_id
                         ], "url": ""
