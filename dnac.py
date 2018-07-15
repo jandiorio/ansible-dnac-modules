@@ -29,6 +29,10 @@ class DnaCenter(object):
         self.session = None
         self.api_path = ''
         self.response = None
+        self.result = dict(
+            changed=False,
+            original_message='',
+            message='')
         self.login()
 
 
@@ -41,7 +45,7 @@ class DnaCenter(object):
         :return:
         """
         if key not in ['api_path', 'username', 'password', 'host', 'session', 'response', 'module','params', \
-                       'cookie','credential_type', 'credential_subtype','credential_name']:
+                       'cookie','credential_type', 'credential_subtype','credential_name','result']:
             raise AttributeError(key + " : Attribute not permitted")
         else:
             self.__dict__[key] = value
@@ -114,7 +118,9 @@ class DnaCenter(object):
             r = response.json()
             return r
         else:
-            return response
+            self.result['changed'] = False
+            self.result['original_message'] = response
+            self.module.fail_json(msg='Failed to get object!', **self.result)
 
     # generalized create call
     def create_obj(self, payload):
@@ -133,9 +139,19 @@ class DnaCenter(object):
         if response.status_code in [200, 201, 202]:
             r = response.json()
             task_response = self.task_checker(r['response']['taskId'])
-            return task_response
+
+            if not task_response.get('isError'):
+                self.result['changed'] = True
+                self.result['original_message'] = task_response
+                self.module.exit_json(msg='Created object successfully.', **self.result)
+            elif task_response.get('isError'):
+                self.result['changed'] = False
+                self.result['original_message'] = task_response
+                self.module.fail_json(msg='Failed to create object!', **self.result)
         else:
-            return response
+            self.result['changed'] = False
+            self.result['original_message'] = response
+            self.module.fail_json(msg='Failed to create object!', **self.result)
 
     # generalized delete call
     def delete_obj(self, payload):
@@ -150,9 +166,18 @@ class DnaCenter(object):
         if response.status_code in [200, 201, 202]:
             r = response.json()
             task_response = self.task_checker(r['response']['taskId'])
-            return task_response
+            if not task_response.get('isError'):
+                self.result['changed'] = True
+                self.result['original_message'] = task_response
+                self.module.exit_json(msg='Deleted object successfully.', **self.result)
+            elif task_response.get('isError'):
+                self.result['changed'] = False
+                self.result['original_message'] = task_response
+                self.module.fail_json(msg='Failed to delete object!', **self.result)
         else:
-            return response
+            self.result['changed'] = False
+            self.result['original_message'] = response
+            self.module.fail_json(msg='Failed to create object!', **self.result)
 
     # generalized update call
     def update_obj(self, payload):
@@ -162,9 +187,18 @@ class DnaCenter(object):
         if response.status_code in [200, 201, 202]:
             r = response.json()
             task_response = self.task_checker(r['response']['taskId'])
-            return task_response
+            if not task_response.get('isError'):
+                self.result['changed'] = True
+                self.result['original_message'] = task_response
+                self.module.exit_json(msg='updated object successfully.', **self.result)
+            elif task_response.get('isError'):
+                self.result['changed'] = False
+                self.result['original_message'] = task_response
+                self.module.fail_json(msg='Failed to update object!', **self.result)
         else:
-            return response
+            self.result['changed'] = False
+            self.result['original_message'] = response
+            self.module.fail_json(msg='Failed to create object!', **self.result)
 
     # Group ID lookup
     def get_group_id(self, group_name):

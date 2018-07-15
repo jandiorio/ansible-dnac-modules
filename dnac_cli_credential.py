@@ -252,21 +252,12 @@ def main():
                 # call update function
                 payload = payload[0].update({'id': setting['id']})
                 dnac.api_path = 'api/v1/global-credential/cli'
-                response = dnac.update_obj(payload)
-
-                if not response.get('isError'):
-                    result['changed'] = True
-                    result['original_message'] = response
-                    module.exit_json(msg='Updated user successfully.', **result)
-                elif response.get('isError'):
-                    result['changed'] = False
-                    result['original_message'] = response
-                    module.fail_json(msg='Failed to updated user!', **result)
+                dnac.update_obj(payload)
 
     if not _user_exists and module.params['state'] == 'present':
          # call create function
          dnac.api_path = 'api/v1/global-credential/cli'
-         response = dnac.create_obj(payload)
+         dnac.create_obj(payload)
     elif not _user_exists and module.params['state'] == 'update':
         module.fail_json(msg="User doesn't exist.  Cannot delete or update.", **result)
     elif not _user_exists and module.params['state'] == 'absent':
@@ -275,14 +266,6 @@ def main():
         result['changed'] = False
         result['msg'] = 'User exists. Use state: update to change user'
         module.exit_json(**result)
-    if not response.get('isError'):
-        result['changed'] = True
-        result['original_message'] = response
-        module.exit_json(msg='Updated user successfully.', **result)
-    elif response.get('isError'):
-        result['changed'] = False
-        result['original_message'] = response
-        module.fail_json(msg='Failed to updated user!', **result)
 
 if __name__ == "__main__":
   main()

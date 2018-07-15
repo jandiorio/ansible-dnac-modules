@@ -103,20 +103,8 @@ def main():
         }
     ]
     dnac.api_path = 'api/v1/commonsetting/global/'+ _group_id
-    response = dnac.create_obj(payload)
+    dnac.create_obj(payload)
 
-    if type(response) == requests.models.Response:
-        result['changed'] = False
-        result['original_message'] = response.json()
-        module.fail_json(msg='initial call failed!', **result)
-    elif not response.get('isError'):
-        result['changed'] = True
-        result['original_message'] = response
-        module.exit_json(msg='Updated credential successfully.', **result)
-    elif response.get('isError'):
-        result['changed'] = False
-        result['original_message'] = response
-        module.fail_json(msg='Failed to updated user!', **result)
 
 if __name__ == "__main__":
   main()

@@ -210,15 +210,16 @@ def main():
             _banner_exists = True
             if setting['value'] != '':
                 if setting['value'] != payload[0]['value']:
-                    response = dnac.create_obj(payload)
-                    if response.get('isError') == False:
-                        result['changed'] = True
-                        result['original_message'] = response
-                        module.exit_json(msg='Created banner successfully.', **result)
-                    elif response.get('isError') == True:
-                        result['changed'] = False
-                        result['original_message'] = response
-                        module.fail_json(msg='Failed to create banner!', **result)
+                    dnac.create_obj(payload)
+                    # response = dnac.create_obj(payload)
+                    # if response.get('isError') == False:
+                    #     result['changed'] = True
+                    #     result['original_message'] = response
+                    #     module.exit_json(msg='Created banner successfully.', **result)
+                    # elif response.get('isError') == True:
+                    #     result['changed'] = False
+                    #     result['original_message'] = response
+                    #     module.fail_json(msg='Failed to create banner!', **result)
                 else:
                     result['changed'] = False
                     result['msg'] = 'Already in desired state.'

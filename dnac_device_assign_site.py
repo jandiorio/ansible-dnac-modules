@@ -270,104 +270,32 @@ def main():
             if group_assignment['response'][device_id][0]['id'] == group_id:
                 result['changed'] = False
                 module.exit_json(msg='Device assigned to the correct group.', **result)
-
             else:
                 result['changed'] = False
                 module.fail_json(msg='Device is already assigned to another group.  Use update as the state.', **result)
         else:
-            group_assignment_results = dnac.create_obj(payload)
-            if type( group_assignment_results) == requests.models.Response:
-                result['changed'] = False
-                result['original_message'] =  group_assignment_results.reason
-                module.fail_json('API Call failed.', **result)
-            else:
-                if not  group_assignment_results.get('isError'):
-                    result['changed'] = True
-                    result['original_message'] =  group_assignment_results
-                    module.exit_json(msg='Update succeeded', **result)
-                elif  group_assignment_results.get('isError'):
-                    result['changed'] = False
-                    result['original_message'] =  group_assignment_results
-                    module.fail_json(msg='Assignment Failed', **result)
-
+            dnac.create_obj(payload)
     elif module.params['state'] == 'absent':
         if not group_assignment['response'][device_id]:
             module.fail_json(msg='Device is not assigned to a group.  Cannot remove assignment')
         elif group_assignment['response'][device_id][0]['id'] != group_id:
             module.fail_json(msg='Device is not assigned to the group provided.  Device is currently in group:' + group_assignment['response'][device_id][0]['groupNameHierarchy'])
         else:
-            group_assignment_results = dnac.delete_obj(device_id)
-            if type( group_assignment_results) == requests.models.Response:
-                result['changed'] = False
-                result['original_message'] =  group_assignment_results.reason
-                module.fail_json('API Call failed.', **result)
-            else:
-                if not  group_assignment_results.get('isError'):
-                    result['changed'] = True
-                    result['original_message'] =  group_assignment_results
-                    module.exit_json(msg='Update succeeded', **result)
-                elif  group_assignment_results.get('isError'):
-                    result['changed'] = False
-                    result['original_message'] =  group_assignment_results
-                    module.fail_json(msg='Assignment Failed', **result)
-
+            dnac.delete_obj(device_id)
     elif module.params['state'] == 'update':
         if not group_assignment['response'][device_id]:
-            group_assignment_results = dnac.create_obj(payload)
-            if type( group_assignment_results) == requests.models.Response:
-                result['changed'] = False
-                result['original_message'] =  group_assignment_results.reason
-                module.fail_json('API Call failed.', **result)
-            else:
-                if not  group_assignment_results.get('isError'):
-                    result['changed'] = True
-                    result['original_message'] =  group_assignment_results
-                    module.exit_json(msg='Update succeeded. No prior group. New Group Added', **result)
-                elif  group_assignment_results.get('isError'):
-                    result['changed'] = False
-                    result['original_message'] =  group_assignment_results
-                    module.fail_json(msg='Assignment Failed', **result)
+            dnac.create_obj(payload)
         elif group_assignment['response'][device_id][0]['id'] == group_id:
             result['changed'] = False
             module.exit_json(msg='Device already assigned to the target group.  No changes required.')
         elif  group_assignment['response'][device_id][0]['id'] != group_id:
             _current_group_id = group_assignment['response'][device_id][0]['id']
             dnac.api_path = 'api/v1/group/' + _current_group_id + '/member'
-            group_delete_results = dnac.delete_obj(device_id)
-
-            # Process Results
-            if type( group_delete_results) == requests.models.Response:
-                result['changed'] = False
-                result['original_message'] =  group_delete_results
-                module.fail_json('API Call failed.', **result)
-            else:
-                if not  group_delete_results.get('isError'):
-                    result['changed'] = True
-                    result['original_message'] =  group_delete_results
-
-                elif  group_delete_results.get('isError'):
-                    result['changed'] = False
-                    result['original_message'] =  group_delete_results
-                    module.fail_json(msg='Assignment Failed', **result)
+            dnac.delete_obj(device_id)
 
             # change the API to the new group
             dnac.api_path = 'api/v1/group/' + group_id + '/member'
-            group_assignment_results = dnac.create_obj(payload)
-
-            #Process Results
-            if type(group_assignment_results) == requests.models.Response:
-                result['changed'] = False
-                result['original_message'] = group_assignment_results.reason
-                module.fail_json('API Call failed.', **result)
-            else:
-                if not group_assignment_results.get('isError'):
-                    result['changed'] = True
-                    result['original_message'] = group_assignment_results
-                    module.exit_json(msg='Update succeeded. Deleted Prior Group. New Group Added', **result)
-                elif group_delete_results.get('isError'):
-                    result['changed'] = False
-                    result['original_message'] = group_assignment_results
-                    module.fail_json(msg='Assignment Failed', **result)
+            dnac.create_obj(payload)
 
 if __name__ == "__main__":
   main()

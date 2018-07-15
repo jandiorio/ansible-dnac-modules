@@ -101,28 +101,10 @@ def main():
         result['changed'] = False
         module.exit_json(msg='IP Pool already exists.', **result)
     elif module.params['state'] == 'present' and not _ip_pool_exists:
-        create_ip_pool_results = dnac.create_obj(payload)
-        if create_ip_pool_results.get('isError') == False:
-            result['changed'] = True
-            result['original_message'] = create_ip_pool_results
-            module.exit_json(msg='Ip pool Created Successfully.', **result)
-        elif create_ip_pool_results.get('isError') == True:
-            result['changed'] = False
-            result['original_message'] = create_ip_pool_results
-            module.fail_json(msg='Failed to create ip pool!', **result)
+        dnac.create_obj(payload)
     elif module.params['state'] == 'absent' and _ip_pool_exists:
         _ip_pool_id = [pool['id'] for pool in ip_pools['response'] if pool['ipPoolName'] == module.params['ip_pool_name']]
-        delete_ip_pool_results = dnac.delete_obj(_ip_pool_id[0])
-        if delete_ip_pool_results.get('isError') == False:
-            result['changed'] = True
-            # result['status_code'] = delete_ip_pool_results['response']
-            result['original_message'] = delete_ip_pool_results
-            module.exit_json(msg='IP pool Deleted Successfully.', **result)
-        elif create_ip_pool_results.get('isError') == True:
-            result['changed'] = False
-            # result['status_code'] = delete_ip_pool_results.status_code
-            result['original_message'] = delete_ip_pool_results
-            module.fail_json(msg='Failed to delete ip pool.', **result)
+        dnac.delete_obj(_ip_pool_id[0])
     elif module.params['state'] == 'absent' and not _ip_pool_exists:
         result['changed'] = False
         module.exit_json(msg='Ip pool Does not exist.  Cannot delete.', **result)

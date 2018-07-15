@@ -242,15 +242,8 @@ def main():
     if current_device_role != module.params['device_role']:
         dnac.api_path = 'api/v1/network-device/brief'
         payload = {'id':device_id,'role':module.params['device_role'],'roleSource':'MANUAL'}
-        device_role_results = dnac.update_obj(payload)
-        if not device_role_results.get('isError'):
-            result['changed'] = True
-            result['original_message'] = device_role_results
-            module.exit_json(msg='Device Role Updated Successfully.', **result)
-        elif device_role_results.get('isError'):
-            result['changed'] = False
-            result['original_message'] = device_role_results
-            module.fail_json(msg='Failed to Update Device Role!', **result)
+        dnac.update_obj(payload)
+
     else:
         result['changed']=False
         module.exit_json(msg='Device Already in desired Role')

@@ -91,32 +91,18 @@ def main():
 
         elif module.params['state'] == 'absent':
             dnac.api_path = 'api/v1/global-credential/'
-            response = dnac.delete_obj(_creds[0][1])
-            # result['changed'] = True
-            # result['msg'] = 'Credential Deleted.' + _creds[0][0]
-            # module.exit_json(**result)
-
+            dnac.delete_obj(_creds[0][1])
 
     elif not _credential_exists:
 
         if module.params['state'] == 'present':
             dnac.api_path = 'api/v1/global-credential/' + _url_suffix
-            response = dnac.create_obj(payload)
-            # result['changed'] = True
-            # result['msg'] = 'Credential exists. Use state: update to change credential'
-           # module.exit_json(**result)
+            dnac.create_obj(payload)
 
         elif module.params['state'] == 'absent':
             module.fail_json(msg="Credential doesn't exist.  Cannot delete or update.", **result)
 
-    if not response.get('isError'):
-        result['changed'] = True
-        result['original_message'] = response
-        module.exit_json(msg='Updated credential successfully.', **result)
-    elif response.get('isError'):
-        result['changed'] = False
-        result['original_message'] = response
-        module.fail_json(msg='Failed to updated user!', **result)
+
 
 if __name__ == "__main__":
   main()

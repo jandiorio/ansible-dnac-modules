@@ -86,32 +86,14 @@ def main():
             _setting_exists = True
             if setting['value'] != '':
                 if setting['value'] != payload[0]['value']:
-                    response = dnac.create_obj(payload)
-                    if response.get('isError') == False:
-                        result['changed'] = True
-                        result['original_message'] = response
-                        module.exit_json(msg='Created Syslog server successfully.', **result)
-                    elif response.get('isError') == True:
-                        result['changed'] = False
-                        result['original_message'] = response
-                        module.fail_json(msg='Failed to create Syslog server!', **result)
+                    dnac.create_obj(payload)
                 else:
                     result['changed'] = False
                     result['msg'] = 'Already in desired state.'
                     module.exit_json(**result)
 
     if _setting_exists == False:
-        response = dnac.create_obj(payload)
-
-        if response.get('isError') == False:
-            result['changed'] = True
-            result['original_message'] = response
-            module.exit_json(msg='Syslog Server created successfully.', **result)
-
-        elif response.get('isError') == True:
-            result['changed'] = False
-            result['original_message'] = response
-            module.fail_json(msg='Failed to create Syslog Server!', **result)
+        dnac.create_obj(payload)
 
 if __name__ == "__main__":
   main()

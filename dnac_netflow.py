@@ -83,33 +83,15 @@ def main():
             if setting['value'] != '':
                 if setting['value'][0]['ipAddress'] != payload[0]['value'][0]['ipAddress'] and \
                     setting['value'][0]['port'] != payload[0]['value'][0]['port']:
-
-                    response = dnac.create_obj(payload)
-                    if not response.get('isError'):
-                        result['changed'] = True
-                        result['original_message'] = response
-                        module.exit_json(msg='Created netflow settings successfully.', **result)
-                    elif response.get('isError'):
-                        result['changed'] = False
-                        result['original_message'] = response
-                        module.fail_json(msg='Failed to create netflow settings!', **result)
+                    #execute
+                    dnac.create_obj(payload)
                 else:
                     result['changed'] = False
                     result['msg'] = 'Already in desired state.'
                     module.exit_json(**result)
 
     if not _setting_exists:
-        response = dnac.create_obj(payload)
-
-        if not response.get('isError'):
-            result['changed'] = True
-            result['original_message'] = response
-            module.exit_json(msg='netflow settings created successfully.', **result)
-
-        elif response.get('isError'):
-            result['changed'] = False
-            result['original_message'] = response
-            module.fail_json(msg='Failed to create netflow settings!', **result)
+        dnac.create_obj(payload)
 
 if __name__ == "__main__":
   main()

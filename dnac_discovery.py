@@ -327,27 +327,12 @@ def main():
         result['changed'] = False
         module.exit_json(msg='Discovery already exists.', **result)
     elif module.params['state'] == 'present' and not _discovery_exists:
-        create_discovery_results = dnac.create_obj(payload)
-        if not create_discovery_results.get('isError'):
-            result['changed'] = True
-            result['original_message'] = create_discovery_results
-            module.exit_json(msg='Discovery Created Successfully.', **result)
-        elif create_discovery_results.get('isError'):
-            result['changed'] = False
-            result['original_message'] = create_discovery_results
-            module.fail_json(msg='Failed to create discovery!', **result)
+        dnac.create_obj(payload)
+
     elif module.params['state'] == 'absent' and _discovery_exists:
         _discovery_id = [discovery['id'] for discovery in discoveries['response'] if discovery['name'] == module.params['discovery_name']]
-        delete_discovery_results = dnac.delete_obj(_discovery_id[0])
+        dnac.delete_obj(_discovery_id[0])
 
-        if not delete_discovery_results.get('isError'):
-            result['changed'] = True
-            result['original_message'] =  delete_discovery_results
-            module.exit_json(msg='Discovery Deleted Successfully.', **result)
-        elif  delete_discovery_results.get('isError') == True:
-            result['changed'] = False
-            result['original_message'] =  delete_discovery_results
-            module.fail_json(msg='Failed to delete discovery!', **result)
     elif module.params['state'] == 'absent' and not _discovery_exists:
         result['changed'] = False
         module.exit_json(msg='Discovery Does not exist.  Cannot delete.', **result)

@@ -283,27 +283,10 @@ def main():
         result['changed'] = False
         module.exit_json(msg='Group already exists.', **result)
     elif module.params['state'] == 'present' and not _group_exists:
-        create_group_results = dnac.create_obj(payload)
-        if not create_group_results.get('isError'):
-            result['changed'] = True
-            result['original_message'] = create_group_results
-            module.exit_json(msg='Group Created Successfully.', **result)
-        elif create_group_results.get('isError'):
-            result['changed'] = False
-            result['original_message'] = create_group_results
-            module.fail_json(msg='Failed to create group!', **result)
+        dnac.create_obj(payload)
     elif module.params['state'] == 'absent' and _group_exists:
         _group_id = [group['id'] for group in groups['response'] if group['name'] == module.params['group_name']]
-        delete_group_results = dnac.delete_obj(_group_id[0])
-        if delete_group_results.get('isError') == False:
-            result['changed'] = True
-            result['original_message'] = delete_group_results
-            module.exit_json(msg='Group Deleted Successfully.', **result)
-        elif delete_group_results.get('isError') == True:
-            result['changed'] = False
-            # result['status_code'] = delete_group_results.status_code
-            result['original_message'] = delete_group_results['response']
-            module.fail_json(msg='Failed to delete group.', **result)
+        dnac.delete_obj(_group_id[0])
     elif module.params['state'] == 'absent' and not _group_exists:
         result['changed'] = False
         module.exit_json(msg='Group Does not exist.  Cannot delete.', **result)
