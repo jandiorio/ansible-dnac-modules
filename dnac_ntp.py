@@ -15,7 +15,7 @@ Copyright (c) 2018 World Wide Technology, Inc.
 
 from ansible.module_utils.basic import AnsibleModule
 from timezonefinder import TimezoneFinder
-from ansible.module_utils.dnac import DnaCenter,dnac_argument_spec
+from ansible.module_utils.network.dnac import DnaCenter,dnac_argument_spec
 
 # -----------------------------------------------
 #  define static required variales

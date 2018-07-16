@@ -179,7 +179,7 @@ EXAMPLES = '''
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.dnac import DnaCenter,dnac_argument_spec
+from ansible.module_utils.network.dnac import DnaCenter,dnac_argument_spec
 
 # -----------------------------------------------
 #  define static required variales
@@ -193,8 +193,8 @@ def main():
     module_args = dnac_argument_spec
     module_args.update(
         cli_user=dict(type='str', required=True),
-        cli_password=dict(type='str', required=True),
-        cli_enable_password=dict(type='str', required=True),
+        cli_password=dict(type='str', required=True, no_log=True),
+        cli_enable_password=dict(type='str', required=True, no_log=True),
         cli_desc=dict(type='str', required=True),
         cli_comments=dict(type='str', required=False),
         group_name=dict(type='str',default='-1')
