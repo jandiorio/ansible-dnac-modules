@@ -22,156 +22,127 @@ version_added: "2.5"
 author: "Jeff Andiorio (@jandiorio)"
 
 options:
-    host: 
-        description: 
-            - Host is the target Cisco DNA Center controller to execute against. 
-        required: true
-        default: null
-        choices: null
-        aliases: null
-        version_added: "2.5"
-    port: 
-        description: 
-            - Port is the TCP port for the HTTP connection. 
-        required: true
-        default: 443
-        choices: 
-            - 80
-            - 443
-        aliases: null
-        version_added: "2.5"
-    username: 
-        description: 
-            - Provide the username for the connection to the Cisco DNA Center Controller.
-        required: true
-        default: null
-        choices: null
-        aliases: null
-        version_added: "2.5"        
-    password: 
-        description: 
-            - Provide the password for connection to the Cisco DNA Center Controller.
-        required: true
-        default: null
-        choices: null
-        aliases: null
-        version_added: "2.5"
-    use_proxy: 
-        description: 
-            - Enter a boolean value for whether to use proxy or not.  
-        required: false
-        default: true
-        choices:
-            - true
-            - false
-        aliases: null
-        version_added: "2.5"
-    use_ssl: 
-        description: 
-            - Enter the boolean value for whether to use SSL or not.
-        required: false
-        default: true
-        choices: 
-            - true
-            - false
-        aliases: null
-        version_added: "2.5"
-    timeout: 
-        description: 
-            - The timeout provides a value for how long to wait for the executed command complete.
-        required: false
-        default: 30
-        choices: null
-        aliases: null
-        version_added: "2.5"
-    validate_certs: 
-        description: 
-            - Specify if verifying the certificate is desired.
-        required: false
-        default: true
-        choices: 
-            - true
-            - false
-        aliases: null
-        version_added: "2.5"
-    state: 
-        description: 
-            - State provides the action to be executed using the terms present, absent, etc.
-        required: true
-        default: present
-        choices: 
-            - present
-            - absent
-        aliases: null
-        version_added: "2.5"
-
-    dhcp_server: 
-        description: 
-            - IP address of the DHCP Server to manipulate.
-        required: true
-        default: null
-        choices: null
-        aliases: null
-        version_added: "2.5"
-    group_name: 
-        description: 
-            - group_name is the name of the group in the hierarchy where you would like to apply the dhcp_server. 
-        required: false
-        default: Global
-        choices: null
-        aliases: null
-        version_added: "2.5"
-notes: 
-    - null
-requirements:
-    - geopy
-    - TimezoneFinder
-    - requests 
-
-'''
-
-EXAMPLES = '''
-
-- name: create dhcp server 
-  dnac_dhcp:
-    host: 10.253.177.230
-    port: 443
-    username: "{{username}}"
-    password: "{{password}}"
-    state: present
-    dhcp_server: 192.168.200.1 192.168.200.2
-
-- name: delete dhcp server 
-  dnac_dhcp:
-    host: 10.253.177.230
-    port: 443
-    username: "{{username}}"
-    password: "{{password}}"
-    state: absent
-    dhcp_server: 192.168.200.1 192.168.200.2
-
-'''
-
-ANSIBLE_METADATA = {'metadata_version': '1.0',
-                    'status': ['preview'],
-                    'supported_by': 'jeff andiorio'}
-
-DOCUMENTATION = r'''
----
-module: dnac_discovery.py
-short_description: Manage discovery jobs within Cisco DNA Center
-description:  Based on 1.1+ version of DNAC API
-author:
-- Jeff Andiorio (@jandiorio)
-version_added: '2.4'
-requirements:
-- DNA Center 1.1+
+  host: 
+    description: 
+    - Host is the target Cisco DNA Center controller to execute against. 
+    required: true
+    version_added: "2.5"
+  port: 
+      description: 
+          - Port is the TCP port for the HTTP connection. 
+      required: false
+      default: 443
+      choices: 
+          - 80
+          - 443
+      version_added: "2.5"
+  username: 
+      description: 
+          - Provide the username for the connection to the Cisco DNA Center Controller.
+      required: true
+      version_added: "2.5"        
+  password: 
+      description: 
+          - Provide the password for connection to the Cisco DNA Center Controller.
+      required: true
+      version_added: "2.5"
+  use_proxy: 
+      description: 
+          - Enter a boolean value for whether to use proxy or not.  
+      required: false
+      default: true
+      choices:
+          - true
+          - false
+      version_added: "2.5"
+  use_ssl: 
+      description: 
+          - Enter the boolean value for whether to use SSL or not.
+      required: false
+      default: true
+      choices: 
+          - true
+          - false
+      version_added: "2.5"
+  timeout: 
+      description: 
+          - The timeout provides a value for how long to wait for the executed command complete.
+      required: false
+      default: 30
+      version_added: "2.5"
+  validate_certs: 
+      description: 
+          - Specify if verifying the certificate is desired.
+      required: false
+      default: true
+      choices: 
+          - true
+          - false
+      version_added: "2.5"
+  state: 
+      description: 
+          - State provides the action to be executed using the terms present, absent, etc.
+      required: false
+      default: present
+      choices: 
+          - present
+          - absent
+      version_added: "2.5"
+  discovery_name:
+    description:  A name for the discovery.
+    required: true 
+    alias: name
+    type: string
+  discovery_type:
+    description: Type of Discovery.  Either Range or CDP.
+    type: string
+    choices: [ 'Range', 'CDP' ] 
+    required: true
+  discovery_cdp_level:
+    description: If type is CDP, a cdp level of depth is needed.  This is how many hops away from the seed device.
+    alias: cdp_level
+    type: string
+    required: false
+  discovery_preferred_ip_method:
+    description:  Specify to use the Loopback for management or not. 
+    alias: preferred_ip_method
+    type: string
+    choices: ['None','UseLoopBack']
+    required: false
+  discovery_ip_filter_list:
+    description: A string of IP addresses to exclude from the discovery.  Example: 192.168.200.1-192.168.200.100
+    type: string
+    required: false 
+  discovery_ip_address_list:
+    description: A string of IP addresses to include in the discovery.  Example: 192.168.200.101-192.168.200.200
+    type: string
+    required: false 
+  global_cli_cred:
+    description:  The CLI Username to utilize during discovery. 
+    type: string
+    required: true
+  global_snmp_cred:
+    description:  The SNMP credential to use for discovery. 
+    type: string
+    required: true
 
 '''
 
 EXAMPLES = r'''
 
-!!! NEED SAMPLE  !!!
+    - name: create discovery
+      dnac_discovery:
+        host: "{{host}}"
+        port: "{{port}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        state: present
+        discovery_name: test-1
+        discovery_type: Range
+        discovery_preferred_ip_method: UseLoopBack
+        discovery_ip_addr_list: 192.168.90.50-192.168.90.50
+        global_cli_cred: wwt
+        global_snmp_cred: SNMP-RW
 
 '''
 
@@ -187,8 +158,7 @@ def main():
     payload = ''
     module_args = dnac_argument_spec
     module_args.update(
-        # api_path=dict(type='str',default='api/v1/discovery'),
-        # state=dict(type='str', default='present', choices=['absent', 'present', 'update']),
+
         discovery_name=dict(alias='name',type='str', required=True),
         discovery_type=dict(type='str',required=True, choices=['CDP','Range']),
         discovery_cdp_level=dict(alias='cdp_level',type='str',required=False),

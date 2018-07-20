@@ -13,147 +13,112 @@ DOCUMENTATION = '''
 module: dnac_cli_credential
 short_description: Add or Delete Global CLI credentials 
 description:
-    - Add or Delete Global CLI Credentials in Cisco DNA Center Controller.  These credentials can be created at any level \
-    in the hierarchy.  This module creates the credential at the specified level of hierarchy only.  * Assigning the \
-    credential as active in the Design Workflow will be handled in the dnac_assign_credential module.
+  - Add or Delete Global CLI Credentials in Cisco DNA Center Controller.  These credentials can be created at any level \
+  in the hierarchy.  This module creates the credential at the specified level of hierarchy only.  * Assigning the \
+  credential as active in the Design Workflow will be handled in the dnac_assign_credential module.
 
 version_added: "2.5"
 author: "Jeff Andiorio (@jandiorio)"
-        
-options:
-    host: 
-        description: 
-            - Host is the target Cisco DNA Center controller to execute against. 
-        required: true
-        default: null
-        choices: null
-        aliases: null
-        version_added: "2.5"
-    port: 
-        description: 
-            - Port is the TCP port for the HTTP connection. 
-        required: true
-        default: 443
-        choices: 
-            - 80
-            - 443
-        aliases: null
-        version_added: "2.5"
-    username: 
-        description: 
-            - Provide the username for the connection to the Cisco DNA Center Controller.
-        required: true
-        default: null
-        choices: null
-        aliases: null
-        version_added: "2.5"        
-    password: 
-        description: 
-            - Provide the password for connection to the Cisco DNA Center Controller.
-        required: true
-        default: null
-        choices: null
-        aliases: null
-        version_added: "2.5"
-    use_proxy: 
-        description: 
-            - Enter a boolean value for whether to use proxy or not.  
-        required: false
-        default: true
-        choices:
-            - true
-            - false
-        aliases: null
-        version_added: "2.5"
-    use_ssl: 
-        description: 
-            - Enter the boolean value for whether to use SSL or not.
-        required: false
-        default: true
-        choices: 
-            - true
-            - false
-        aliases: null
-        version_added: "2.5"
-    timeout: 
-        description: 
-            - The timeout provides a value for how long to wait for the executed command complete.
-        required: false
-        default: 30
-        choices: null
-        aliases: null
-        version_added: "2.5"
-    validate_certs: 
-        description: 
-            - Specify if verifying the certificate is desired.
-        required: false
-        default: true
-        choices: 
-            - true
-            - false
-        aliases: null
-        version_added: "2.5"
-    state: 
-        description: 
-            - State provides the action to be executed using the terms present, absent, etc.
-        required: true
-        default: present
-        choices: 
-            - present
-            - absent
-        aliases: null
-        version_added: "2.5"
 
+options:
+  host: 
+    description: 
+    - Host is the target Cisco DNA Center controller to execute against. 
+    required: true
+    version_added: "2.5"
+  port: 
+      description: 
+          - Port is the TCP port for the HTTP connection. 
+      required: false
+      default: 443
+      choices: 
+          - 80
+          - 443
+      version_added: "2.5"
+  username: 
+      description: 
+          - Provide the username for the connection to the Cisco DNA Center Controller.
+      required: true
+      version_added: "2.5"        
+  password: 
+      description: 
+          - Provide the password for connection to the Cisco DNA Center Controller.
+      required: true
+      version_added: "2.5"
+  use_proxy: 
+      description: 
+          - Enter a boolean value for whether to use proxy or not.  
+      required: false
+      default: true
+      choices:
+          - true
+          - false
+      version_added: "2.5"
+  use_ssl: 
+      description: 
+          - Enter the boolean value for whether to use SSL or not.
+      required: false
+      default: true
+      choices: 
+          - true
+          - false
+      version_added: "2.5"
+  timeout: 
+      description: 
+          - The timeout provides a value for how long to wait for the executed command complete.
+      required: false
+      default: 30
+      version_added: "2.5"
+  validate_certs: 
+      description: 
+          - Specify if verifying the certificate is desired.
+      required: false
+      default: true
+      choices: 
+          - true
+          - false
+      version_added: "2.5"
+  state: 
+      description: 
+          - State provides the action to be executed using the terms present, absent, etc.
+      required: false
+      default: present
+      choices: 
+          - present
+          - absent
+      version_added: "2.5"
     cli_user: 
         description: 
             - Global CLI username to be manipulated
         required: true
-        default: null
-        choices: null
-        aliases: null
         version_added: "2.5"
     cli_password: 
         description: 
             - Provide the Global CLI password to associate with the CLI username being created. 
         required: true
-        default: null
-        choices: null
-        aliases: null
         version_added: "2.5"
     cli_enable_password: 
         description: 
             - Provide a value for the CLI Enable password. 
         required: true
-        default: null
-        choices: null
-        aliases: null
         version_added: "2.5"
     cli_desc: 
         description: 
             - cli_desc is a friendly description of the CLI credential being created.  
         required: true
-        default: null
-        choices: null
-        aliases: null
         version_added: "2.5"
     cli_comments: 
         description: 
             - cli_comments is space for any additional information about the CLI credential.  
         required: false
-        default: null
-        choices: null
-        aliases: null
         version_added: "2.5"
     group_name: 
         description: 
             - group_name is the name of the group in the hierarchy where you would like to apply the banner. 
         required: false
         default: Global
-        choices: null
-        aliases: null
         version_added: "2.5"
 notes: 
-    - null
 requirements:
     - geopy
     - TimezoneFinder
@@ -165,7 +130,7 @@ EXAMPLES = '''
 
 - name: create a user
   dnac_cli_credential:
-    host: 10.253.177.230
+    host: "{{host}}"
     port: 443
     username: "{{username}}"
     password: "{{password}}"
@@ -176,6 +141,10 @@ EXAMPLES = '''
     cli_desc: "User Description"
     cli_comments: "some comments"
 
+'''
+
+RETURN = '''
+#
 '''
 
 from ansible.module_utils.basic import AnsibleModule
@@ -231,8 +200,7 @@ def main():
     if module.params['cli_user'] in _usernames:
         _user_exists = True
     else:
-        _user_exists = False
-
+        _user_exists = Fals
     '''
     check if username exists
     check state flag: present = create, absent = delete, update = change url_password

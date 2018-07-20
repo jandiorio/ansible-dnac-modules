@@ -22,89 +22,72 @@ version_added: "2.5"
 author: "Jeff Andiorio (@jandiorio)"
 
 options:
-    host: 
-        description: 
-            - Host is the target Cisco DNA Center controller to execute against. 
-        required: true
-        default: null
-        choices: null
-        aliases: null
-        version_added: "2.5"
-    port: 
-        description: 
-            - Port is the TCP port for the HTTP connection. 
-        required: true
-        default: 443
-        choices: 
-            - 80
-            - 443
-        aliases: null
-        version_added: "2.5"
-    username: 
-        description: 
-            - Provide the username for the connection to the Cisco DNA Center Controller.
-        required: true
-        default: null
-        choices: null
-        aliases: null
-        version_added: "2.5"        
-    password: 
-        description: 
-            - Provide the password for connection to the Cisco DNA Center Controller.
-        required: true
-        default: null
-        choices: null
-        aliases: null
-        version_added: "2.5"
-    use_proxy: 
-        description: 
-            - Enter a boolean value for whether to use proxy or not.  
-        required: false
-        default: true
-        choices:
-            - true
-            - false
-        aliases: null
-        version_added: "2.5"
-    use_ssl: 
-        description: 
-            - Enter the boolean value for whether to use SSL or not.
-        required: false
-        default: true
-        choices: 
-            - true
-            - false
-        aliases: null
-        version_added: "2.5"
-    timeout: 
-        description: 
-            - The timeout provides a value for how long to wait for the executed command complete.
-        required: false
-        default: 30
-        choices: null
-        aliases: null
-        version_added: "2.5"
-    validate_certs: 
-        description: 
-            - Specify if verifying the certificate is desired.
-        required: false
-        default: true
-        choices: 
-            - true
-            - false
-        aliases: null
-        version_added: "2.5"
-    state: 
-        description: 
-            - State provides the action to be executed using the terms present, absent, etc.
-        required: true
-        default: present
-        choices: 
-            - present
-            - absent
-        aliases: null
-        version_added: "2.5"
-
+  host: 
+    description: 
+    - Host is the target Cisco DNA Center controller to execute against. 
+    required: true
+    version_added: "2.5"
+  port: 
+      description: 
+          - Port is the TCP port for the HTTP connection. 
+      required: false
+      default: 443
+      choices: 
+          - 80
+          - 443
+      version_added: "2.5"
+  username: 
+      description: 
+          - Provide the username for the connection to the Cisco DNA Center Controller.
+      required: true
+      version_added: "2.5"        
+  password: 
+      description: 
+          - Provide the password for connection to the Cisco DNA Center Controller.
+      required: true
+      version_added: "2.5"
+  use_proxy: 
+      description: 
+          - Enter a boolean value for whether to use proxy or not.  
+      required: false
+      default: true
+      choices:
+          - true
+          - false
+      version_added: "2.5"
+  use_ssl: 
+      description: 
+          - Enter the boolean value for whether to use SSL or not.
+      required: false
+      default: true
+      choices: 
+          - true
+          - false
+      version_added: "2.5"
+  timeout: 
+      description: 
+          - The timeout provides a value for how long to wait for the executed command complete.
+      required: false
+      default: 30
+      version_added: "2.5"
+  validate_certs: 
+      description: 
+          - Specify if verifying the certificate is desired.
+      required: false
+      default: true
+      choices: 
+          - true
+          - false
+      version_added: "2.5"
+  state: 
+      description: 
+          - State provides the action to be executed using the terms present, absent, etc.
+      required: false
+      default: present
+      choices: 
+          - present
+          - absent
+      version_added: "2.5"
     device_name: 
         description: 
             - name of the device in the inventory database that you would like to update
