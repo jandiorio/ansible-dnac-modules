@@ -200,7 +200,7 @@ def main():
     if module.params['cli_user'] in _usernames:
         _user_exists = True
     else:
-        _user_exists = Fals
+        _user_exists = False
     '''
     check if username exists
     check state flag: present = create, absent = delete, update = change url_password
