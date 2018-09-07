@@ -187,7 +187,8 @@ def main():
     for setting in settings['response']:
         if setting['key'] == payload[0]['key']:
             _setting_exists == True
-            if setting['value'] != '':
+            if len(setting['value']) > 0:
+            #if setting['value'] != '':
                 if setting['value'][0]['ipAddress'] != payload[0]['value'][0]['ipAddress'] and \
                     setting['value'][0]['port'] != payload[0]['value'][0]['port']:
                     #execute
