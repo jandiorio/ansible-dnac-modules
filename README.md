@@ -1,8 +1,9 @@
 # ansible_dnac
 
 ## Requirements
-- Locate your ansible library path: `ansible --version` 
-- Copy file 'dnac.py' to /usr/lib/python2.7/dist-packages/ansible/module_utils/ folder
+- Locate your ansible library path: `ansible --version`
+- Create a new directory in module_utils/network named dnac
+- Copy file 'dnac.py' to module_utils/network/dnac folder
 - Copy all other *.py files to the location of your ansible custom modules. (mine is /usr/share/ansible
 - installation of geopy to resolve building addresses and populate lat/long
 
