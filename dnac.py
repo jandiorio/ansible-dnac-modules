@@ -3,6 +3,7 @@
 import requests
 import json
 import time
+import sys
 from geopy.geocoders import Nominatim
 from timezonefinder import TimezoneFinder
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -69,8 +70,19 @@ class DnaCenter(object):
         self.session.verify = False
 
         # send to controller
-        self.response = self.session.post(login_url)
-
+        try:
+            self.response = self.session.post(login_url)
+        except Exception as e:
+            self.result['changed'] = False
+            self.result['original_message'] = e
+            self.module.fail_json(msg='Failed to Connect to target host.', **self.result)
+            
+        if self.response.status_code not in [200, 201, 202]:
+            self.session.close()
+            self.result['changed'] = False
+            self.result['original_message'] = self.response.content
+            self.module.fail_json(msg='Failed to establish session. ', **self.result)
+            
         # update the headers with received sessions cookies
         self.session.headers.update({'X-Auth-Token': self.response.json()['Token']})
 
@@ -220,7 +232,7 @@ class DnaCenter(object):
         :return: attributes dictionary
         """
 
-        geolocator = Nominatim()
+        geolocator = Nominatim(user_agent='dnac_ansible',timeout=30)
         try:
             location = geolocator.geocode(address)
         except Exception as e:

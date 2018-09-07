@@ -219,6 +219,7 @@ def main():
         module.fail_json(msg='Unable to find group with the supplied information.')
 
     #  check if the device is already a member of that group
+    # 1.2 ???  dnac.api_path = 'api/v1/member/group?groupType=SITE&id=' + device_id
     dnac.api_path = 'api/v1/member/group?groupType=SITE&id=' + device_id
     group_assignment = dnac.get_obj()
 
@@ -226,7 +227,7 @@ def main():
     dnac.api_path = 'api/v1/group/' + group_id + '/member'
 
     if module.params['state'] == 'present':
-        if group_assignment['response'][device_id]:
+        if group_assignment['response'][device_id][0]:
             if group_assignment['response'][device_id][0]['id'] == group_id:
                 result['changed'] = False
                 module.exit_json(msg='Device assigned to the correct group.', **result)
@@ -236,14 +237,14 @@ def main():
         else:
             dnac.create_obj(payload)
     elif module.params['state'] == 'absent':
-        if not group_assignment['response'][device_id]:
+        if not group_assignment['response'][device_id][0]:
             module.fail_json(msg='Device is not assigned to a group.  Cannot remove assignment')
         elif group_assignment['response'][device_id][0]['id'] != group_id:
             module.fail_json(msg='Device is not assigned to the group provided.  Device is currently in group:' + group_assignment['response'][device_id][0]['groupNameHierarchy'])
         else:
             dnac.delete_obj(device_id)
     elif module.params['state'] == 'update':
-        if not group_assignment['response'][device_id]:
+        if not group_assignment['response'][device_id][0]:
             dnac.create_obj(payload)
         elif group_assignment['response'][device_id][0]['id'] == group_id:
             result['changed'] = False

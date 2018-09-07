@@ -166,27 +166,30 @@ RETURN = r'''
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.network.dnac import DnaCenter,dnac_argument_spec
 from geopy.geocoders import Nominatim
+import sys
 
 __metaclass__ = type
 
-def parse_geo(address):
-
-    geolocator = Nominatim()
-    try:
-        location = geolocator.geocode(address)
-    except Exception as e:
-        print(e)
-        sys.exit(0)
-
-    location_parts = location.address.split(',')
-    country = location_parts[len(location_parts) -1]
-    attributes = {'address': location.address,
-                  'country':country,
-                  'latitude':location.latitude,
-                  'longitude':location.longitude,
-                  'type':'building'
-                  }
-    return attributes
+# def parse_geo(address):
+# 
+#     geolocator = Nominatim(user_agent='dnac_ansible',timeout=30)
+#     try:
+#         location = geolocator.geocode(address)
+#     except Exception as e:
+#         print(e)
+#         #debugging
+#         module.exit_json(msg='Failed to get location.', **result)
+#         sys.exit(0)
+# 
+#     location_parts = location.address.split(',')
+#     country = location_parts[len(location_parts) -1]
+#     attributes = {'address': location.address,
+#                   'country':country,
+#                   'latitude':location.latitude,
+#                   'longitude':location.longitude,
+#                   'type':'building'
+#                   }
+#     return attributes
 
 def main():
     _group_exists = False
@@ -259,11 +262,12 @@ def main():
 
     #  do some cool Geo stuffs
     if module.params['group_type'] == 'building':
-        attribs = parse_geo(module.params['group_building_address'])
+        attribs = dnac.parse_geo(module.params['group_building_address'])
         payload['additionalInfo'][0]['attributes'].update(attribs)
 
     if module.params['state'] == 'present' and _group_exists:
         result['changed'] = False
+        result['intended_payload'] = payload
         module.exit_json(msg='Group already exists.', **result)
     elif module.params['state'] == 'present' and not _group_exists:
         dnac.create_obj(payload)
