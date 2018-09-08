@@ -73,7 +73,7 @@ options:
   validate_certs: 
       description: 
           - Specify if verifying the certificate is desired.
-      required: false
+      required: false 
       default: true
       choices: 
           - true
