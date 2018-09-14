@@ -1,132 +1,135 @@
 #/usr/bin/env python3
-# Copyright (c) 2018 World Wide Technology, Inc.
+
+# Copyright (c) 2018, World Wide Technology, Inc.
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
-    'status': ['preview'],
-    'supported_by': 'community'
+    'status' : ['preview'],
+    'supported_by' : 'community'
 }
 
-DOCUMENTATION = '''
+DOCUMENTATION = r'''
+
+---
 
 module: dnac_cli_credential
 short_description: Add or Delete Global CLI credentials 
 description:
   - Add or Delete Global CLI Credentials in Cisco DNA Center Controller.  These credentials can be created at any level \
-  in the hierarchy.  This module creates the credential at the specified level of hierarchy only.  * Assigning the \
-  credential as active in the Design Workflow will be handled in the dnac_assign_credential module.
-
+    in the hierarchy.  This module creates the credential at the specified level of hierarchy only.  * Assigning the \
+    credential as active in the Design Workflow will be handled in the dnac_assign_credential module.
 version_added: "2.5"
 author: "Jeff Andiorio (@jandiorio)"
-
 options:
   host: 
     description: 
-    - Host is the target Cisco DNA Center controller to execute against. 
+      - Host is the target Cisco DNA Center controller to execute against. 
     required: true
     version_added: "2.5"
   port: 
-      description: 
-          - Port is the TCP port for the HTTP connection. 
-      required: false
-      default: 443
-      choices: 
-          - 80
-          - 443
-      version_added: "2.5"
+    description: 
+      - Port is the TCP port for the HTTP connection. 
+    required: false
+    default: 443
+    choices: 
+      - 80
+      - 443
+    version_added: "2.5"
   username: 
-      description: 
-          - Provide the username for the connection to the Cisco DNA Center Controller.
-      required: true
-      version_added: "2.5"        
+    description: 
+      - Provide the username for the connection to the Cisco DNA Center Controller.
+    required: true
+    version_added: "2.5"        
   password: 
-      description: 
-          - Provide the password for connection to the Cisco DNA Center Controller.
-      required: true
-      version_added: "2.5"
+    description: 
+      - Provide the password for connection to the Cisco DNA Center Controller.
+    required: true
+    version_added: "2.5"
   use_proxy: 
-      description: 
-          - Enter a boolean value for whether to use proxy or not.  
-      required: false
-      default: true
-      choices:
-          - true
-          - false
-      version_added: "2.5"
+    description: 
+      - Enter a boolean value for whether to use proxy or not.  
+    required: false
+    default: true
+    choices:
+      - true
+      - false
+    version_added: "2.5"
   use_ssl: 
-      description: 
-          - Enter the boolean value for whether to use SSL or not.
-      required: false
-      default: true
-      choices: 
-          - true
-          - false
-      version_added: "2.5"
+    description: 
+      - Enter the boolean value for whether to use SSL or not.
+    required: false
+    default: true
+    choices: 
+      - true
+      - false
+    version_added: "2.5"
   timeout: 
-      description: 
-          - The timeout provides a value for how long to wait for the executed command complete.
-      required: false
-      default: 30
-      version_added: "2.5"
+    description: 
+      - The timeout provides a value for how long to wait for the executed command complete.
+    required: false
+    default: 30
+    version_added: "2.5"
   validate_certs: 
-      description: 
-          - Specify if verifying the certificate is desired.
-      required: false
-      default: true
-      choices: 
-          - true
-          - false
-      version_added: "2.5"
+    description: 
+      - Specify if verifying the certificate is desired.
+    required: false
+    default: true
+    choices: 
+      - true
+      - false
+    version_added: "2.5"
   state: 
-      description: 
-          - State provides the action to be executed using the terms present, absent, etc.
-      required: false
-      default: present
-      choices: 
-          - present
-          - absent
-      version_added: "2.5"
-    cli_user: 
-        description: 
-            - Global CLI username to be manipulated
-        required: true
-        version_added: "2.5"
-    cli_password: 
-        description: 
-            - Provide the Global CLI password to associate with the CLI username being created. 
-        required: true
-        version_added: "2.5"
-    cli_enable_password: 
-        description: 
-            - Provide a value for the CLI Enable password. 
-        required: true
-        version_added: "2.5"
-    cli_desc: 
-        description: 
-            - cli_desc is a friendly description of the CLI credential being created.  
-        required: true
-        version_added: "2.5"
-    cli_comments: 
-        description: 
-            - cli_comments is space for any additional information about the CLI credential.  
-        required: false
-        version_added: "2.5"
-    group_name: 
-        description: 
-            - group_name is the name of the group in the hierarchy where you would like to apply the banner. 
-        required: false
-        default: Global
-        version_added: "2.5"
+    description: 
+      - State provides the action to be executed using the terms present, absent, etc.
+    required: false
+    default: present
+    choices: 
+      - present
+      - absent
+    version_added: "2.5"
+  cli_user: 
+    description: 
+      - Global CLI username to be manipulated
+    required: true
+    version_added: "2.5"
+  cli_password: 
+    description: 
+      - Provide the Global CLI password to associate with the CLI username being created. 
+    required: true
+    version_added: "2.5"
+  cli_enable_password: 
+    description: 
+      - Provide a value for the CLI Enable password. 
+    required: true
+    version_added: "2.5"
+  cli_desc: 
+    description: 
+      - cli_desc is a friendly description of the CLI credential being created.  
+    required: true
+    version_added: "2.5"
+  cli_comments: 
+    description: 
+      - cli_comments is space for any additional information about the CLI credential.  
+    required: false
+    version_added: "2.5"
+  group_name: 
+    description: 
+      - group_name is the name of the group in the hierarchy where you would like to apply the banner.
+    required: false
+    default: Global
+    version_added: "2.5"
 notes: 
 requirements:
-    - geopy
-    - TimezoneFinder
-    - requests 
+  - geopy
+  - TimezoneFinder
+  - requests 
     
 '''
 
-EXAMPLES = '''
+EXAMPLES = r'''
+
+---
 
 - name: create a user
   dnac_cli_credential:
@@ -143,7 +146,8 @@ EXAMPLES = '''
 
 '''
 
-RETURN = '''
+RETURN = r'''
+---
 #
 '''
 

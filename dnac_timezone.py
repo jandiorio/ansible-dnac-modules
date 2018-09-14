@@ -4,9 +4,9 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 ANSIBLE_METADATA = {
-    'metadata_version': '1.0',
-    'status' : ['development'],
-    'supported_by' : 'jandiorio'
+    'metadata_version': '1.1',
+    'status' : ['preview'],
+    'supported_by' : 'community'
 }
 
 
@@ -16,118 +16,124 @@ module: dnac_timezone.py
 short_description: Manage Timezone Settings within Cisco DNA Center
 description:  Manage Timezone Settings in Cisco DNA Center.  Based on 1.1+ version of DNAC API
 author:
-- Jeff Andiorio (@jandiorio)
-version_added: '2.4'
+  - Jeff Andiorio (@jandiorio)
+version_added: '2.5'
 requirements:
-- DNA Center 1.1+
+  - DNA Center 1.1+
 
 options:
   host: 
     description: 
-    - Host is the target Cisco DNA Center controller to execute against. 
+      - Host is the target Cisco DNA Center controller to execute against. 
     required: true
     version_added: "2.5"
   port: 
-      description: 
-          - Port is the TCP port for the HTTP connection. 
-      required: false
-      default: 443
-      choices: 
-          - 80
-          - 443
-      version_added: "2.5"
+    description: 
+      - Port is the TCP port for the HTTP connection. 
+    required: false
+    default: 443
+    choices: 
+      - 80
+      - 443
+    version_added: "2.5"
   username: 
-      description: 
-          - Provide the username for the connection to the Cisco DNA Center Controller.
-      required: true
-      version_added: "2.5"        
+    description: 
+      - Provide the username for the connection to the Cisco DNA Center Controller.
+    required: true
+    version_added: "2.5"        
   password: 
-      description: 
-          - Provide the password for connection to the Cisco DNA Center Controller.
-      required: true
-      version_added: "2.5"
+    description: 
+      - Provide the password for connection to the Cisco DNA Center Controller.
+    required: true
+    version_added: "2.5"
   use_proxy: 
-      description: 
-          - Enter a boolean value for whether to use proxy or not.  
-      required: false
-      default: true
-      choices:
-          - true
-          - false
-      version_added: "2.5"
+    description: 
+      - Enter a boolean value for whether to use proxy or not.  
+    required: false
+    default: true
+    choices:
+      - true
+      - false
+    version_added: "2.5"
   use_ssl: 
-      description: 
-          - Enter the boolean value for whether to use SSL or not.
-      required: false
-      default: true
-      choices: 
-          - true
-          - false
-      version_added: "2.5"
+    description: 
+      - Enter the boolean value for whether to use SSL or not.
+    required: false
+    default: true
+    choices: 
+      - true
+      - false
+    version_added: "2.5"
   timeout: 
-      description: 
-          - The timeout provides a value for how long to wait for the executed command complete.
-      required: false
-      default: 30
-      version_added: "2.5"
+    description: 
+      - The timeout provides a value for how long to wait for the executed command complete.
+    required: false
+    default: 30
+    version_added: "2.5"
   validate_certs: 
-      description: 
-          - Specify if verifying the certificate is desired.
-      required: false 
-      default: true
-      choices: 
-          - true
-          - false
-      version_added: "2.5"
+    description: 
+      - Specify if verifying the certificate is desired.
+    required: false 
+    default: true
+    choices: 
+      - true
+      - false
+    version_added: "2.5"
   state: 
-      description: 
-          - State provides the action to be executed using the terms present, absent, etc.
-      required: false
-      default: present
-      choices: 
-          - present
-          - absent
-      version_added: "2.5  
+    description: 
+      - State provides the action to be executed using the terms present, absent, etc.
+    required: false
+    default: present
+    choices: 
+      - present
+      - absent
+    version_added: "2.5"  
   timezone:
-      description: The timezone string matching the timezone you are targeting. example: America/Chicago
-      required: false
-      type: string
+    description:
+      - "The timezone string matching the timezone you are targeting. example: America/Chicago"
+    required: false
+    type: string
+    version_added: "2.5"
   group_name:
-      description: Name of the group where the setting will be applied.  
-      required: false
-      default: Global
-      type: string
+    description:
+      - Name of the group where the setting will be applied.  
+    required: false
+    default: Global
+    type: string
   location: 
-      description: address of a location in the timezone. A lookup will be performed to resolve the timezone.
-      required: false
-      type: string  
+    description:
+      - address of a location in the timezone. A lookup will be performed to resolve the timezone.
+    required: false
+    type: string  
+
 '''
+
 EXAMPLES = r'''
 
+---
 
-    - name: create timezone 
-      dnac_timezone:
-        host: "{{host}}"
-        port: "{{port}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        state: present
-        location: 56 weldon parkway, maryland heights, mo
+- name: create timezone 
+  dnac_timezone:
+    host: "{{host}}"
+    port: "{{port}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    state: present
+    location: 56 weldon parkway, maryland heights, mo
 
-
-    - name: create timezone 
-      dnac_timezone:
-        host: "{{host}}"
-        port: "{{port}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        state: present
-        timezone: "America/Chicago"
-        
+- name: create timezone 
+  dnac_timezone:
+    host: "{{host}}"
+    port: "{{port}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    state: present
+    timezone: "America/Chicago"
+    
 '''
 
 RETURN = r'''
-#
+
 '''
 
 from ansible.module_utils.basic import AnsibleModule
@@ -202,20 +208,20 @@ def main():
     # # check if the configuration is already in the desired state
     dnac.api_path = 'api/v1/commonsetting/global/' + group_id
     settings = dnac.get_obj()
-
-    for setting in settings['response']:
-        if setting['key'] == payload[0]['key']:
-            _setting_exists = True
-            if setting['value'] != '':
-                if setting['value'] != payload[0]['value']:
-                    dnac.create_obj(payload)
-
-                else:
-                    result['changed'] = False
-                    result['msg'] = 'Already in desired state.'
-                    module.exit_json(**result)
-
-    if not _setting_exists:
+    
+    # parse resultset for only setting desired
+    timezone_setting = [setting for setting in settings['response'] if setting['key'] == 'timezone.site']
+    timezone_setting = timezone_setting[0]
+    
+    if len(timezone_setting['value']) > 0:
+        _setting_exists = True
+        if timezone_setting['value'] != payload[0]['value']:
+            dnac.create_obj(payload)
+        else:
+            result['changed'] = False
+            result['msg'] = 'Already in desired state.'
+            module.exit_json(**result)
+    else:
         dnac.create_obj(payload)
 
 if __name__ == "__main__":

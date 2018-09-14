@@ -181,20 +181,21 @@ def main():
     # # check if the configuration is already in the desired state
     dnac.api_path = 'api/v1/commonsetting/global/' + group_id
     settings = dnac.get_obj()
-
-    for setting in settings['response']:
-        if setting['key'] == payload[0]['key']:
-            _setting_exists = True
-            if setting['value'] != '':
-                if setting['value'] != payload[0]['value']:
-                    dnac.create_obj(payload)
-                else:
-                    result['changed'] = False
-                    result['msg'] = 'Already in desired state.'
-                    module.exit_json(**result)
-
-    if not _setting_exists:
+    
+    syslog_settings = [setting for setting in settings['response'] if setting['key'] == 'syslog.server']
+    syslog_settings = syslog_settings[0]
+    
+    if len(syslog_settings['value']) > 0:
+        _setting_exists = True
+        if syslog_settings['value'] != payload[0]['value']:
+            dnac.create_obj(payload)
+        else:
+            result['changed'] = False
+            result['msg'] = 'Already in desired state.'
+            module.exit_json(**result)
+    else:
         dnac.create_obj(payload)
+        
 
 if __name__ == "__main__":
   main()
