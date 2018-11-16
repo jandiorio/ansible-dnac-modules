@@ -188,7 +188,7 @@ class DnaCenter(object):
                 self.module.fail_json(msg='Failed to delete object!', **self.result)
         else:
             self.result['changed'] = False
-            self.result['original_message'] = response
+            self.result['original_message'] = response.text
             self.module.fail_json(msg='Failed to create object!', **self.result)
 
     # generalized update call

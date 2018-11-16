@@ -260,7 +260,7 @@ def main():
         result['changed'] = False
         module.fail_json(msg="Parent doesn't exist!", **result)
 
-    #  do some cool Geo stuffs
+    #  lookup lat/long based on provided address
     if module.params['group_type'] == 'building':
         attribs = dnac.parse_geo(module.params['group_building_address'])
         payload['additionalInfo'][0]['attributes'].update(attribs)

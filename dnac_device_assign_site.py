@@ -227,7 +227,7 @@ def main():
     dnac.api_path = 'api/v1/group/' + group_id + '/member'
 
     if module.params['state'] == 'present':
-        if group_assignment['response'][device_id][0]:
+        if len(group_assignment['response'][device_id]) > 0:
             if group_assignment['response'][device_id][0]['id'] == group_id:
                 result['changed'] = False
                 module.exit_json(msg='Device assigned to the correct group.', **result)
@@ -244,7 +244,8 @@ def main():
         else:
             dnac.delete_obj(device_id)
     elif module.params['state'] == 'update':
-        if not group_assignment['response'][device_id][0]:
+        if not len(group_assignment['response'][device_id]) > 0:   
+        #if not group_assignment['response'][device_id][0]:
             dnac.create_obj(payload)
         elif group_assignment['response'][device_id][0]['id'] == group_id:
             result['changed'] = False
