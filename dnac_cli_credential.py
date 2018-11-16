@@ -215,7 +215,8 @@ def main():
     for setting in settings['response']:
         if setting['username'] == payload[0]['username']:
             if module.params['state'] == 'absent':
-                dnac.api_path='api/v1/global-credential/cli'
+                dnac.api_path='api/v1/global-credential'
+                #dnac.api_path='api/v1/global-credential'
                 response = dnac.delete_obj(setting['id'])
                 result['changed'] = True
                 result['msg'] = 'User Deleted.'
@@ -224,11 +225,13 @@ def main():
                 # call update function
                 payload = payload[0].update({'id': setting['id']})
                 dnac.api_path = 'api/v1/global-credential/cli'
+                #dnac.api_path = 'dna/intent/api/v1/global-credential/cli'
                 dnac.update_obj(payload)
 
     if not _user_exists and module.params['state'] == 'present':
          # call create function
          dnac.api_path = 'api/v1/global-credential/cli'
+         #dnac.api_path = 'dna/intent/api/v1/global-credential/cli'
          dnac.create_obj(payload)
     elif not _user_exists and module.params['state'] == 'update':
         module.fail_json(msg="User doesn't exist.  Cannot delete or update.", **result)
