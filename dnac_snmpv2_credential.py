@@ -12,102 +12,94 @@ ANSIBLE_METADATA = {
 
 DOCUMENTATION = r'''
 ---
-module: dnac_snmpv2_credential.py
+module: dnac_snmpv2_credential
 short_description: Manage SNMPv2 Credential(s) within Cisco DNA Center
 description:  Manage SNMPv2 Credential(s) settings in Cisco DNA Center.  Based on 1.1+ version of DNAC API
 author:
-- Jeff Andiorio (@jandiorio)
+  - Jeff Andiorio (@jandiorio)
 version_added: '2.4'
 requirements:
-- DNA Center 1.1+
+  - DNA Center 1.2+
 
 options:
   host: 
     description: 
-    - Host is the target Cisco DNA Center controller to execute against. 
+      - Host is the target Cisco DNA Center controller to execute against. 
     required: true
-    version_added: "2.5"
   port: 
-      description: 
-          - Port is the TCP port for the HTTP connection. 
-      required: false
-      default: 443
-      choices: 
-          - 80
-          - 443
-      version_added: "2.5"
+    description: 
+      - Port is the TCP port for the HTTP connection. 
+    required: false
+    default: 443
+    choices: 
+      - 80
+      - 443
   username: 
-      description: 
-          - Provide the username for the connection to the Cisco DNA Center Controller.
-      required: true
-      version_added: "2.5"        
+    description: 
+      - Provide the username for the connection to the Cisco DNA Center Controller.
+    required: true
   password: 
-      description: 
-          - Provide the password for connection to the Cisco DNA Center Controller.
-      required: true
-      version_added: "2.5"
+    description: 
+      - Provide the password for connection to the Cisco DNA Center Controller.
+    required: true
   use_proxy: 
-      description: 
-          - Enter a boolean value for whether to use proxy or not.  
-      required: false
-      default: true
-      choices:
-          - true
-          - false
-      version_added: "2.5"
+    description: 
+      - Enter a boolean value for whether to use proxy or not.  
+    required: false
+    default: true
+    choices:
+      - true
+      - false
   use_ssl: 
-      description: 
-          - Enter the boolean value for whether to use SSL or not.
-      required: false
-      default: true
-      choices: 
-          - true
-          - false
-      version_added: "2.5"
+    description: 
+      - Enter the boolean value for whether to use SSL or not.
+    required: false
+    default: true
+    choices: 
+      - true
+      - false
   timeout: 
-      description: 
-          - The timeout provides a value for how long to wait for the executed command complete.
-      required: false
-      default: 30
-      version_added: "2.5"
+    description: 
+      - The timeout provides a value for how long to wait for the executed command complete.
+    required: false
+    default: 30
   validate_certs: 
-      description: 
-          - Specify if verifying the certificate is desired.
-      required: false
-      default: true
-      choices: 
-          - true
-          - false
-      version_added: "2.5"
+    description: 
+      - Specify if verifying the certificate is desired.
+    required: false
+    default: true
+    choices: 
+      - true
+      - false
   state: 
-      description: 
-          - State provides the action to be executed using the terms present, absent, etc.
-      required: false
-      default: present
-      choices: 
-          - present
-          - absent
-      version_added: "2.5  
+    description: 
+      - State provides the action to be executed using the terms present, absent, etc.
+    required: false
+    default: present
+    choices: 
+      - present
+      - absent
   credential_type: 
-      description: Specify whether the SNMPv2 Community is READ or WRITE. 
-      default:  SNMPV2_WRITE_COMMUNITY
-      choices:  ['SNMPV2_READ_COMMUNITY','SNMPV2_WRITE_COMMUNITY']
-      required: false
-      type: string
+    description: Specify whether the SNMPv2 Community is READ or WRITE. 
+    default:  SNMPV2_WRITE_COMMUNITY
+    choices:  ['SNMPV2_READ_COMMUNITY','SNMPV2_WRITE_COMMUNITY']
+    required: false
+    type: string
   snmp_community: 
-      description: The SNMPv2 community to be managed.
-      required: true
-      type: string
+    description: The SNMPv2 community to be managed.
+    required: true
+    type: string
   snmp_description: 
-      description: A description of the SNMPv2 Community.
-      type: string
-      required true
+    description: A description of the SNMPv2 Community.
+    type: string
+    required: true
   snmp_comments: 
-      description: Comments about the SNMPv2 Community.
-      required: true
-      type: string 
+    description: Comments about the SNMPv2 Community.
+    required: true
+    type: string 
         
 '''
+
 EXAMPLES = r'''
 
 - name: create snmpv2 communities

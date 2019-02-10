@@ -11,118 +11,135 @@ ANSIBLE_METADATA = {
     'supported_by': 'community'
 }
 
-DOCUMENTATION = '''
+DOCUMENTATION = r'''
+---
 
 module: dnac_discovery
 short_description: Create network discovery jobs. 
-description:
-    - Create network discovery jobs to populate the DNA Center Inventory Database. 
+description: Create network discovery jobs to populate the DNA Center Inventory Database. 
 
 version_added: "2.5"
-author: "Jeff Andiorio (@jandiorio)"
+author: 
+  - Jeff Andiorio (@jandiorio)
 
 options:
   host: 
     description: 
-    - Host is the target Cisco DNA Center controller to execute against. 
+      - Host is the target Cisco DNA Center controller to execute against. 
     required: true
-    version_added: "2.5"
+
   port: 
-      description: 
-          - Port is the TCP port for the HTTP connection. 
-      required: false
-      default: 443
-      choices: 
-          - 80
-          - 443
-      version_added: "2.5"
+    description: 
+      - Port is the TCP port for the HTTP connection. 
+    required: false
+    default: 443
+    choices: 
+      - 80
+      - 443
+  
   username: 
-      description: 
-          - Provide the username for the connection to the Cisco DNA Center Controller.
-      required: true
-      version_added: "2.5"        
+    description: 
+      - Provide the username for the connection to the Cisco DNA Center Controller.
+    required: true
+          
   password: 
-      description: 
-          - Provide the password for connection to the Cisco DNA Center Controller.
-      required: true
-      version_added: "2.5"
+    description: 
+      - Provide the password for connection to the Cisco DNA Center Controller.
+    required: true
+  
   use_proxy: 
-      description: 
-          - Enter a boolean value for whether to use proxy or not.  
-      required: false
-      default: true
-      choices:
-          - true
-          - false
-      version_added: "2.5"
+    description: 
+      - Enter a boolean value for whether to use proxy or not.  
+    required: false
+    default: true
+    choices:
+      - true
+      - false
+  
   use_ssl: 
-      description: 
-          - Enter the boolean value for whether to use SSL or not.
-      required: false
-      default: true
-      choices: 
-          - true
-          - false
-      version_added: "2.5"
+    description: 
+      - Enter the boolean value for whether to use SSL or not.
+    required: false
+    default: true
+    choices: 
+      - true
+      - false
+  
   timeout: 
-      description: 
-          - The timeout provides a value for how long to wait for the executed command complete.
-      required: false
-      default: 30
-      version_added: "2.5"
+    description: 
+      - The timeout provides a value for how long to wait for the executed command complete.
+    required: false
+    default: 30
+  
   validate_certs: 
-      description: 
-          - Specify if verifying the certificate is desired.
-      required: false
-      default: true
-      choices: 
-          - true
-          - false
-      version_added: "2.5"
+    description: 
+      - Specify if verifying the certificate is desired.
+    required: false
+    default: true
+    choices: 
+      - true
+      - false
+  
   state: 
-      description: 
-          - State provides the action to be executed using the terms present, absent, etc.
-      required: false
-      default: present
-      choices: 
-          - present
-          - absent
-      version_added: "2.5"
+    description: 
+      - State provides the action to be executed using the terms present, absent, etc.
+    required: false
+    default: present
+    choices: 
+      - present
+      - absent
+  
   discovery_name:
-    description:  A name for the discovery.
+    description:  
+      - A name for the discovery.
     required: true 
     alias: name
     type: string
   discovery_type:
-    description: Type of Discovery.  Either Range or CDP.
+    description: 
+      - Type of Discovery.  Either Range or CDP.
     type: string
-    choices: [ 'Range', 'CDP' ] 
+    choices:
+      - Range
+      - CDP
     required: true
   discovery_cdp_level:
-    description: If type is CDP, a cdp level of depth is needed.  This is how many hops away from the seed device.
+    description: 
+      - If type is CDP, a cdp level of depth is needed.  This is how many hops away from the seed device.
     alias: cdp_level
     type: string
     required: false
   discovery_preferred_ip_method:
-    description:  Specify to use the Loopback for management or not. 
+    description:  
+      - Specify to use the Loopback for management or not. 
     alias: preferred_ip_method
     type: string
-    choices: ['None','UseLoopBack']
+    choices: 
+      - None
+      - UseLoopBack
     required: false
+
   discovery_ip_filter_list:
-    description: A string of IP addresses to exclude from the discovery.  Example: 192.168.200.1-192.168.200.100
+    description: 
+      - A string of IP addresses to exclude from the discovery.  (Example 192.168.200.1-192.168.200.100)
     type: string
     required: false 
+
   discovery_ip_address_list:
-    description: A string of IP addresses to include in the discovery.  Example: 192.168.200.101-192.168.200.200
+    description: 
+      - A string of IP addresses to include in the discovery.  (Example 192.168.200.101-192.168.200.200)
     type: string
     required: false 
+
   global_cli_cred:
-    description:  The CLI Username to utilize during discovery. 
+    description:  
+      - The CLI Username to utilize during discovery. 
     type: string
     required: true
+
   global_snmp_cred:
-    description:  The SNMP credential to use for discovery. 
+    description:  
+      - The SNMP credential to use for discovery. 
     type: string
     required: true
 
@@ -130,24 +147,26 @@ options:
 
 EXAMPLES = r'''
 
-    - name: create discovery
-      dnac_discovery:
-        host: "{{host}}"
-        port: "{{port}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        state: present
-        discovery_name: test-1
-        discovery_type: Range
-        discovery_preferred_ip_method: UseLoopBack
-        discovery_ip_addr_list: 192.168.90.50-192.168.90.50
-        global_cli_cred: wwt
-        global_snmp_cred: SNMP-RW
+---
+
+- name: create discovery
+  dnac_discovery:
+    host: "{{host}}"
+    port: "{{port}}"
+    username: "{{username}}"
+    password: "{{password}}"
+    state: present
+    discovery_name: test-1
+    discovery_type: Range
+    discovery_preferred_ip_method: UseLoopBack
+    discovery_ip_addr_list: 192.168.90.50-192.168.90.50
+    global_cli_cred: wwt
+    global_snmp_cred: SNMP-RW
 
 '''
 
 RETURN = r'''
-#
+
 '''
 
 from ansible.module_utils.basic import AnsibleModule

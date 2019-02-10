@@ -12,7 +12,7 @@ ANSIBLE_METADATA = {
 
 DOCUMENTATION = r'''
 ---
-module: dnac_timezone.py
+module: dnac_timezone
 short_description: Manage Timezone Settings within Cisco DNA Center
 description:  Manage Timezone Settings in Cisco DNA Center.  Based on 1.1+ version of DNAC API
 author:
@@ -26,7 +26,7 @@ options:
     description: 
       - Host is the target Cisco DNA Center controller to execute against. 
     required: true
-    version_added: "2.5"
+    
   port: 
     description: 
       - Port is the TCP port for the HTTP connection. 

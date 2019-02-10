@@ -21,6 +21,7 @@ description:
     credential as active in the Design Workflow will be handled in the dnac_assign_credential module.
 version_added: "2.5"
 author: "Jeff Andiorio (@jandiorio)"
+
 options:
   host: 
     description: 

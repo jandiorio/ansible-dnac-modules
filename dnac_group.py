@@ -10,127 +10,115 @@ ANSIBLE_METADATA = {
     'supported_by': 'community'
 }
 
-DOCUMENTATION = '''
-
+DOCUMENTATION = r'''
+---
 module: dnac_group
 short_description: Add or Delete groups in DNA Center
-description:
-    - Add or delete groups in the network hierarchy within Cisco DNA Center controller.
-
+description: Add or delete groups in the network hierarchy within Cisco DNA Center controller.
 version_added: "2.5"
-author: "Jeff Andiorio (@jandiorio)"
+author: 
+  - Jeff Andiorio (@jandiorio)
+    
+requirements:
+  - geopy
+  - TimezoneFinder
+  - requests 
 
 options:
   host: 
     description: 
-    - Host is the target Cisco DNA Center controller to execute against. 
+      - Host is the target Cisco DNA Center controller to execute against. 
     required: true
-    version_added: "2.5"
+
   port: 
-      description: 
-          - Port is the TCP port for the HTTP connection. 
-      required: false
-      default: 443
-      choices: 
-          - 80
-          - 443
-      version_added: "2.5"
+    description: 
+      - Port is the TCP port for the HTTP connection. 
+    required: false
+    default: 443
+    choices: 
+      - 80
+      - 443
+  
   username: 
-      description: 
-          - Provide the username for the connection to the Cisco DNA Center Controller.
-      required: true
-      version_added: "2.5"        
+    description: 
+      - Provide the username for the connection to the Cisco DNA Center Controller.
+    required: true
+          
   password: 
-      description: 
-          - Provide the password for connection to the Cisco DNA Center Controller.
-      required: true
-      version_added: "2.5"
+    description: 
+      - Provide the password for connection to the Cisco DNA Center Controller.
+    required: true
+  
   use_proxy: 
-      description: 
-          - Enter a boolean value for whether to use proxy or not.  
-      required: false
-      default: true
-      choices:
-          - true
-          - false
-      version_added: "2.5"
+    description: 
+      - Enter a boolean value for whether to use proxy or not.  
+    required: false
+    default: true
+    choices:
+      - true
+      - false
+  
   use_ssl: 
-      description: 
-          - Enter the boolean value for whether to use SSL or not.
-      required: false
-      default: true
-      choices: 
-          - true
-          - false
-      version_added: "2.5"
+    description: 
+      - Enter the boolean value for whether to use SSL or not.
+    required: false
+    default: true
+    choices: 
+      - true
+      - false
+  
   timeout: 
-      description: 
-          - The timeout provides a value for how long to wait for the executed command complete.
-      required: false
-      default: 30
-      version_added: "2.5"
+    description: 
+      - The timeout provides a value for how long to wait for the executed command complete.
+    required: false
+    default: 30
+  
   validate_certs: 
-      description: 
-          - Specify if verifying the certificate is desired.
-      required: false
-      default: true
-      choices: 
-          - true
-          - false
-      version_added: "2.5"
+    description: 
+      - Specify if verifying the certificate is desired.
+    required: false
+    default: true
+    choices: 
+      - true
+      - false
+  
   state: 
-      description: 
-          - State provides the action to be executed using the terms present, absent, etc.
-      required: false
-      default: present
-      choices: 
-          - present
-          - absent
-      version_added: "2.5"
-    group_name: 
-        description: 
-            - Name of the group to modify.  
-        required: true
-        default: null
-        choices: null
-        aliases: null
-        version_added: "2.5"
-    group_type: 
-        description: 
-            - There are two types of 
-        required: true
-        default: area
-        choices: 
-            - area
-            - building
-        aliases: null
-        version_added: "2.5"
-    group_parent_name: 
-        description: 
-            - DNS domain name of the environment within Cisco DNA Center
-        required: true
-        default: null
-        choices: null
-        aliases: null
-        version_added: "2.5"                        
-    group_building_address: 
-        description: 
-            - group_name is the name of the group in the hierarchy where you would like to apply these settings. 
-        required: false
-        default: Global
-        choices: null
-        aliases: null
-        version_added: "2.5"
-notes: 
-    - null
-requirements:
-    - geopy
-    - TimezoneFinder
-    - requests 
+    description: 
+      - State provides the action to be executed using the terms present, absent, etc.
+    required: false
+    default: present
+    choices: 
+      - present
+      - absent
+  
+  group_name: 
+    description: 
+      - Name of the group to modify.  
+    required: true
+    
+  group_type: 
+    description: 
+      - Manages the sites in DNAC
+    required: true
+    default: area
+    choices: 
+      - area
+      - building
+    
+  group_parent_name: 
+    description: 
+      - DNS domain name of the environment within Cisco DNA Center
+    required: true
+                            
+  group_building_address: 
+    description: 
+      - group_name is the name of the group in the hierarchy where you would like to apply these settings. 
+    required: false
+    default: Global
 
 '''
 
-EXAMPLES = '''
+EXAMPLES = r'''
 
 - name: add group 
   dnac_group:
