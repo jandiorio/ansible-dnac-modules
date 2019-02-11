@@ -5,6 +5,8 @@
 `pip install geopy`
 - installation of requests python module
 `pip install requests`
+- installation of timezonefinder python module 
+`pip install timezonefinder`
 
 ## Setup
 - Locate your ansible library path: `ansible --version`
