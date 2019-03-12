@@ -121,7 +121,7 @@ EXAMPLES = r'''
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.network.dnac import DnaCenter,dnac_argument_spec
+from ansible.module_utils.network.dnac.dnac import DnaCenter,dnac_argument_spec
 
 # -----------------------------------------------
 #  main
