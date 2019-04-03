@@ -1,4 +1,3 @@
-```
 # Ansible Modules for DNA Center
 
 These modules provide declarative and indempotent access to configure the design elements of [Cisco's DNA Center](https://www.cisco.com/c/en/us/products/cloud-systems.../dna-center/index.html). 
