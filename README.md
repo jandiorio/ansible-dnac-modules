@@ -1,18 +1,17 @@
+```
 # Ansible Modules for DNA Center
 
 These modules provide declarative and indempotent access to configure the design elements of [Cisco's DNA Center](https://www.cisco.com/c/en/us/products/cloud-systems.../dna-center/index.html). 
 
 ## Content
 
-<<<<<<< HEAD
 **WWT / Redhat Webinar**
-**Date**: 8/7/2018
-=======
+
+# **Date**: 8/7/2018
+
 The webinar below was hosted by Redhat and delivered by Jeff Andiorio of World Wide Technology on 8/7/2018.  
->>>>>>> convert-dna-intent
 
 [WWT / Redhat Ansible Webinar](https://www.ansible.com/resources/webinars-training/lab-automation-by-wwt-with-ansible-tower-and-cisco-dna-center)
-
 
 
 Additional slides providing an overview of the modules can be found here:  [Ansible DNA Center Modules Overview](https://www.slideshare.net/secret/JszN04gu0ySsXX)
@@ -41,21 +40,22 @@ The documentation can be viewed using  `ansible-doc` and will provide all of the
 - `dnac_timezone`
 
 ## Requirements
-<<<<<<< HEAD
+
 This solution requires the installation of the following python modules:
 
 - **geopy** to resolve building addresses and populate lat/long
-`pip install geopy`
+  `pip install geopy`
 - **requests** for http requests 
-`pip install requests`
+  `pip install requests`
 - **timezonefinder** for resolving the timezone based on physical address 
-`pip install timezonefinder`
+  `pip install timezonefinder`
 
 ## Installation Steps
 
 These modules are not shipped with Ansible core but they can be installed 
-following these steps:
-=======
+
+# following these steps:
+
 The modules are written in python and require the following additional Python Modules be installed on your control node system.
 
 - **geopy** to resolve building addresses and populate lat/long
@@ -66,8 +66,8 @@ The modules are written in python and require the following additional Python Mo
   `pip install timezonefinder`
 
 ## Installation
+
 Follow these steps to prepare the environment and being using the modules. 
->>>>>>> convert-dna-intent
 
 - Locate your ansible library path: `ansible --version`
 - Change to the ansible library path: example: `cd /Library/Python/2.7/site-packages/ansible` 
@@ -75,7 +75,6 @@ Follow these steps to prepare the environment and being using the modules.
 - Copy file `dnac.py` to module_utils/network/dnac folder
 - Copy all other *.py files to the location of your ansible custom modules. (mine is /usr/share/ansible
 
-<<<<<<< HEAD
 At this point, you can verify the modules are installed properly like this: 
 
 `ansible-doc dnac_netflow`
@@ -83,6 +82,7 @@ At this point, you can verify the modules are installed properly like this:
 If you see the module documentation things are installed properly.
 
 ## EXAMPLES
+
 =======
 Validation that the modules have been installed properly can be performed by executing:
 
@@ -92,11 +92,10 @@ If the results show the module documentation your installation was successful.
 
 ## Examples
 
->>>>>>> convert-dna-intent
 The examples below set the common-settings in the DNA Center Design workflow.  Additional examples are included 
 in the module documentation.  `ansible-doc *module_name*`
 
-```yaml
+​```yaml
 - name: test my new module
   connection: local
   hosts: localhost
@@ -170,17 +169,7 @@ in the module documentation.  `ansible-doc *module_name*`
         username: admin
         password: *****
         timezone: America/Chicago
-
-<<<<<<< HEAD
-  ```
-  
-##Author Information
-jeff.andiorio@wwt.com, World Wide Technology
-
-=======
-```
-
+​```
 ## Author
 
 **Jeff Andiorio** - World Wide Technology 
->>>>>>> convert-dna-intent
