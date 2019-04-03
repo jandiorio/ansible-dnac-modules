@@ -5,8 +5,7 @@ These modules provide declarative and indempotent access to configure the design
 ## Content
 
 **WWT / Redhat Webinar**
-
-# **Date**: 8/7/2018
+**Date**: 8/7/2018
 
 The webinar below was hosted by Redhat and delivered by Jeff Andiorio of World Wide Technology on 8/7/2018.  
 
