@@ -4,9 +4,6 @@ These modules provide declarative and indempotent access to configure the design
 
 ## Content
 
-**WWT / Redhat Webinar**
-**Date**: 8/7/2018
-
 The webinar below was hosted by Redhat and delivered by Jeff Andiorio of World Wide Technology on 8/7/2018.  
 
 [WWT / Redhat Ansible Webinar](https://www.ansible.com/resources/webinars-training/lab-automation-by-wwt-with-ansible-tower-and-cisco-dna-center)
@@ -57,10 +54,13 @@ These modules are not shipped with Ansible core but they can be installed
 The modules are written in python and require the following additional Python Modules be installed on your control node system.
 
 - **geopy** to resolve building addresses and populate lat/long
+
   `pip install geopy`
 - **requests** 
+
   `pip install requests`
 - **timezonefinder** to resolve the timezone based on the physical bulding address provided
+
   `pip install timezonefinder`
 
 ## Installation
@@ -79,9 +79,6 @@ At this point, you can verify the modules are installed properly like this:
 
 If you see the module documentation things are installed properly.
 
-## EXAMPLES
-
-=======
 Validation that the modules have been installed properly can be performed by executing:
 
 `ansible-doc dnac_netflow` 
@@ -90,84 +87,78 @@ If the results show the module documentation your installation was successful.
 
 ## Examples
 
-The examples below set the common-settings in the DNA Center Design workflow.  Additional examples are included 
-in the module documentation.  `ansible-doc *module_name*`
+The examples below set the common-settings in the DNA Center Design workflow.  Additional examples are included in the module documentation.  `ansible-doc *module_name*`
 
-​```yaml
-- name: test my new module
-  connection: local
-  hosts: localhost
-  gather_facts: false
-  no_log: true
+```yaml
+name: test my new module
+connection: local
+hosts: localhost
+gather_facts: false
+no_log: true
 
-  tasks:
-    - name: set the banner  
-      dnac_banner:
-        host: 10.253.176.237
-        port: 443
-        username: admin
-        password: *****
-        banner_message: "created by a new ansible module for banners"
+tasks:
 
-    - name: set the ntp server
-      dnac_ntp:
-        host: 10.253.176.237
-        port: 443
-        username: admin
-        password: *****
-        ntp_server: 192.168.200.1
+- name: set the banner  
+  dnac_banner:
+    host: 10.253.176.237
+    port: 443
+    username: admin
+    password: *****
+    banner_message: "created by a new ansible module for banners"
+- name: set the ntp server
+  dnac_ntp:
+    host: 10.253.176.237
+    port: 443
+    username: admin
+    password: *****
+    ntp_server: 192.168.200.1
+- name: set the dhcp server
+  dnac_dhcp:
+    host: 10.253.176.237
+    port: 443
+    username: admin
+    password: *****
+    dhcp_server: 192.168.200.1
+- name: set the dns server and domain name
+  dnac_dns:
+    host: 10.253.176.237
+    port: 443
+    username: admin
+    password: *****
+    primary_dns_server: 192.168.200.1
+    secondary_dns_server: 192.168.200.2
+    domain_name: wwtatc.local
+- name: set the syslog server
+  dnac_syslog:
+    host: 10.253.176.237
+    port: 443
+    username: admin
+    password: *****
+    syslog_server: 172.31.3.237
+- name: set the snmp server
+  dnac_snmp:
+    host: 10.253.176.237
+    port: 443
+    username: admin
+    password:  *****
+    snmp_server: 172.31.3.237
+- name: set the netflow
+  dnac_netflow:
+    host: 10.253.176.237
+    port: 443
+    username: admin
+    password: *****
+    netflow_collector: 172.31.3.237
+    netflow_port: 6007
+- name: set the timezone
+  dnac_timezone:
+    host: 10.253.176.237
+    port: 443
+    username: admin
+    password: *****
+    timezone: America/Chicago
+```
 
-    - name: set the dhcp server
-      dnac_dhcp:
-        host: 10.253.176.237
-        port: 443
-        username: admin
-        password: *****
-        dhcp_server: 192.168.200.1
-
-    - name: set the dns server and domain name
-      dnac_dns:
-        host: 10.253.176.237
-        port: 443
-        username: admin
-        password: *****
-        primary_dns_server: 192.168.200.1
-        secondary_dns_server: 192.168.200.2
-        domain_name: wwtatc.local
-
-    - name: set the syslog server
-      dnac_syslog:
-        host: 10.253.176.237
-        port: 443
-        username: admin
-        password: *****
-        syslog_server: 172.31.3.237
-
-    - name: set the snmp server
-      dnac_snmp:
-        host: 10.253.176.237
-        port: 443
-        username: admin
-        password:  *****
-        snmp_server: 172.31.3.237
-
-    - name: set the netflow
-      dnac_netflow:
-        host: 10.253.176.237
-        port: 443
-        username: admin
-        password: *****
-        netflow_collector: 172.31.3.237
-        netflow_port: 6007
-
-    - name: set the timezone
-      dnac_timezone:
-        host: 10.253.176.237
-        port: 443
-        username: admin
-        password: *****
-        timezone: America/Chicago
-​```
 ## Author
 
 **Jeff Andiorio** - World Wide Technology 
