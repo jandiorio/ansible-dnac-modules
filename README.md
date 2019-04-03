@@ -4,6 +4,9 @@ These modules provide declarative and indempotent access to configure the design
 
 ## Content
 
+**WWT / Redhat Webinar**
+**Date**: 8/7/2018
+
 [WWT / Redhat Ansible Webinar](https://www.ansible.com/resources/webinars-training/lab-automation-by-wwt-with-ansible-tower-and-cisco-dna-center)
 
 ## Included Modules 
@@ -30,19 +33,31 @@ See the `ansible-doc` documentation for more details.
 - `dnac_timezone`
 
 ## Requirements
-- installation of geopy to resolve building addresses and populate lat/long
+This solution requires the installation of the following python modules:
+
+- **geopy** to resolve building addresses and populate lat/long
 `pip install geopy`
-- installation of requests python module
+- **requests** for http requests 
 `pip install requests`
-- installation of timezonefinder python module 
+- **timezonefinder** for resolving the timezone based on physical address 
 `pip install timezonefinder`
 
-## Setup
+## Installation Steps
+
+These modules are not shipped with Ansible core but they can be installed 
+following these steps:
+
 - Locate your ansible library path: `ansible --version`
 - Change to the ansible library path: example: `cd /Library/Python/2.7/site-packages/ansible` 
 - Create a new directory in module_utils/network named dnac: `mkdir module_utils/network/dnac` 
 - Copy file `dnac.py` to module_utils/network/dnac folder
 - Copy all other *.py files to the location of your ansible custom modules. (mine is /usr/share/ansible
+
+At this point, you can verify the modules are installed properly like this: 
+
+`ansible-doc dnac_netflow`
+
+If you see the module documentation things are installed properly.
 
 ## EXAMPLES
 The examples below set the common-settings in the DNA Center Design workflow.  Additional examples are included 
@@ -124,3 +139,7 @@ in the module documentation.  `ansible-doc *module_name*`
         timezone: America/Chicago
 
   ```
+  
+##Author Information
+jeff.andiorio@wwt.com, World Wide Technology
+
