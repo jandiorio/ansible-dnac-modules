@@ -45,24 +45,6 @@ This solution requires the installation of the following python modules:
 - **timezonefinder** for resolving the timezone based on physical address 
   `pip install timezonefinder`
 
-## Installation Steps
-
-These modules are not shipped with Ansible core but they can be installed 
-
-# following these steps:
-
-The modules are written in python and require the following additional Python Modules be installed on your control node system.
-
-- **geopy** to resolve building addresses and populate lat/long
-
-  `pip install geopy`
-- **requests** 
-
-  `pip install requests`
-- **timezonefinder** to resolve the timezone based on the physical bulding address provided
-
-  `pip install timezonefinder`
-
 ## Installation
 
 Follow these steps to prepare the environment and being using the modules. 
@@ -72,12 +54,6 @@ Follow these steps to prepare the environment and being using the modules.
 - Create a new directory in module_utils/network named dnac: `mkdir module_utils/network/dnac` 
 - Copy file `dnac.py` to module_utils/network/dnac folder
 - Copy all other *.py files to the location of your ansible custom modules. (mine is /usr/share/ansible
-
-At this point, you can verify the modules are installed properly like this: 
-
-`ansible-doc dnac_netflow`
-
-If you see the module documentation things are installed properly.
 
 Validation that the modules have been installed properly can be performed by executing:
 
