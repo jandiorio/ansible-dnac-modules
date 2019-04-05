@@ -61,26 +61,26 @@ ansible 2.7.9
   python version = 2.7.12 (default, Nov 12 2018, 14:36:49) [GCC 5.4.0 20160609]
 ```
 
-**STEP 2.**Change to the ansible library path: example: `cd /Library/Python/2.7/site-packages/ansible` 
+**STEP 2.**  Change to the ansible library path: example: `cd /Library/Python/2.7/site-packages/ansible` 
 
 ```shell
 vagrant@ubuntu-xenial:~$ cd /usr/lib/python2.7/dist-packages/ansible
 
 ```
 
-**STEP 3.**Create a new directory in module_utils/network named dnac: `mkdir module_utils/network/dnac` 
+**STEP 3.**  Create a new directory in module_utils/network named dnac: `mkdir module_utils/network/dnac` 
 
 ```shell
 vagrant@ubuntu-xenial:/usr/lib/python2.7/dist-packages/ansible$ sudo mkdir module_utils/network/dnac
 ```
 
-**STEP 4.**Copy file `dnac.py` to module_utils/network/dnac folder
+**STEP 4.**  Copy file `dnac.py` to module_utils/network/dnac folder
 
 ```shell
 vagrant@ubuntu-xenial:/usr/lib/python2.7/dist-packages/ansible$ sudo cp ~/ansible-dnac-modules/dnac.py module_utils/network/dnac/.
 ```
 
-**STEP 5.**Copy all other *.py files to the location of your ansible custom modules. (mine is /usr/share/ansible)
+**STEP 5.**  Copy all other *.py files to the location of your ansible custom modules. (mine is /usr/share/ansible)
 
 ```shell
 ​```shell
@@ -93,7 +93,7 @@ dnac_banner.py               dnac_device_assign_site.py   dnac_discovery.py    d
 
 ```
 
-**STEP 6.**Validation that the modules have been installed properly can be performed by executing:
+**STEP 6.**  Validation that the modules have been installed properly can be performed by executing:
 
 `ansible-doc dnac_dhcp`
 
