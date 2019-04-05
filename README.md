@@ -49,51 +49,51 @@ This solution requires the installation of the following python modules:
 
 Follow these steps to prepare the environment and being using the modules. 
 
-- Locate your ansible library path: `ansible --version`
+**STEP 1.**  Locate your ansible library path: `ansible --version`
 
-  ```shell
-  vagrant@ubuntu-xenial:~$ ansible --version
-  ansible 2.7.9
-    config file = /etc/ansible/ansible.cfg
-    configured module search path = [u'/home/vagrant/.ansible/plugins/modules', u'/usr/share/ansible/plugins/modules']
-    ansible python module location = /usr/lib/python2.7/dist-packages/ansible
-    executable location = /usr/bin/ansible
-    python version = 2.7.12 (default, Nov 12 2018, 14:36:49) [GCC 5.4.0 20160609]
-  ```
+```shell
+vagrant@ubuntu-xenial:~$ ansible --version
+ansible 2.7.9
+  config file = /etc/ansible/ansible.cfg
+  configured module search path = [u'/home/vagrant/.ansible/plugins/modules', u'/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python2.7/dist-packages/ansible
+  executable location = /usr/bin/ansible
+  python version = 2.7.12 (default, Nov 12 2018, 14:36:49) [GCC 5.4.0 20160609]
+```
 
-- Change to the ansible library path: example: `cd /Library/Python/2.7/site-packages/ansible` 
+**STEP 2.**Change to the ansible library path: example: `cd /Library/Python/2.7/site-packages/ansible` 
 
-  ```shell
-  vagrant@ubuntu-xenial:~$ cd /usr/lib/python2.7/dist-packages/ansible
-  
-  ```
+```shell
+vagrant@ubuntu-xenial:~$ cd /usr/lib/python2.7/dist-packages/ansible
 
-- Create a new directory in module_utils/network named dnac: `mkdir module_utils/network/dnac` 
+```
 
-  ```shell
-  vagrant@ubuntu-xenial:/usr/lib/python2.7/dist-packages/ansible$ sudo mkdir module_utils/network/dnac
-  ```
+**STEP 3.**Create a new directory in module_utils/network named dnac: `mkdir module_utils/network/dnac` 
 
-- Copy file `dnac.py` to module_utils/network/dnac folder
+```shell
+vagrant@ubuntu-xenial:/usr/lib/python2.7/dist-packages/ansible$ sudo mkdir module_utils/network/dnac
+```
 
-  ```shell
-  vagrant@ubuntu-xenial:/usr/lib/python2.7/dist-packages/ansible$ sudo cp ~/ansible-dnac-modules/dnac.py module_utils/network/dnac/.
-  ```
+**STEP 4.**Copy file `dnac.py` to module_utils/network/dnac folder
 
-- Copy all other *.py files to the location of your ansible custom modules. (mine is /usr/share/ansible)
+```shell
+vagrant@ubuntu-xenial:/usr/lib/python2.7/dist-packages/ansible$ sudo cp ~/ansible-dnac-modules/dnac.py module_utils/network/dnac/.
+```
 
-  ```shell
-  ​```shell
-  vagrant@ubuntu-xenial:~/ansible-dnac-modules$ sudo mkdir -p /usr/share/ansible/plugins/modules
-  vagrant@ubuntu-xenial:~/ansible-dnac-modules$ sudo cp *.py /usr/share/ansible/plugins/modules
-  vagrant@ubuntu-xenial:~/ansible-dnac-modules$ ls /usr/share/ansible/plugins/modules
-  dnac_activate_credential.py  dnac_cli_credential.py       dnac_device_role.py  dnac_dns.py     dnac_netflow.py  dnac_snmp.py               dnac_timezone.py
-  dnac_archive_config.py       dnac_del_archived_config.py  dnac_dhcp.py         dnac_group.py   dnac_ntp.py      dnac_snmpv2_credential.py
-  dnac_banner.py               dnac_device_assign_site.py   dnac_discovery.py    dnac_ippool.py  dnac.py          dnac_syslog.py
-  
-  ```
+**STEP 5.**Copy all other *.py files to the location of your ansible custom modules. (mine is /usr/share/ansible)
 
-Validation that the modules have been installed properly can be performed by executing:
+```shell
+​```shell
+vagrant@ubuntu-xenial:~/ansible-dnac-modules$ sudo mkdir -p /usr/share/ansible/plugins/modules
+vagrant@ubuntu-xenial:~/ansible-dnac-modules$ sudo cp *.py /usr/share/ansible/plugins/modules
+vagrant@ubuntu-xenial:~/ansible-dnac-modules$ ls /usr/share/ansible/plugins/modules
+dnac_activate_credential.py  dnac_cli_credential.py       dnac_device_role.py  dnac_dns.py     dnac_netflow.py  dnac_snmp.py               dnac_timezone.py
+dnac_archive_config.py       dnac_del_archived_config.py  dnac_dhcp.py         dnac_group.py   dnac_ntp.py      dnac_snmpv2_credential.py
+dnac_banner.py               dnac_device_assign_site.py   dnac_discovery.py    dnac_ippool.py  dnac.py          dnac_syslog.py
+
+```
+
+**STEP 6.**Validation that the modules have been installed properly can be performed by executing:
 
 `ansible-doc dnac_dhcp`
 
