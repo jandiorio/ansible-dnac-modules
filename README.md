@@ -9,7 +9,7 @@ The webinar below was hosted by Redhat and delivered by Jeff Andiorio of World W
 [WWT / Redhat Ansible Webinar](https://www.ansible.com/resources/webinars-training/lab-automation-by-wwt-with-ansible-tower-and-cisco-dna-center)
 
 
-Additional slides providing an overview of the modules can be found here:  [Ansible DNA Center Modules Overview](https://www.slideshare.net/secret/JszN04gu0ySsXX)
+Additional slides providing an overview of the modules can be found here:  [Ansible DNA Center Modules Overview](https://www.slideshare.net/secret/1l5xe5ORzTN3Uv)
 
 ## Included Modules 
 
