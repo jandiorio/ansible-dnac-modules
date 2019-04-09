@@ -43,7 +43,7 @@ This solution requires the installation of the following python modules:
 - **requests** for http requests 
   `pip install requests`
 - **timezonefinder** for resolving the timezone based on physical address 
-  `pip install timezonefinder`
+  `pip install timezonefinder==3.4.2`
 
 ## Installation
 
