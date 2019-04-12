@@ -2,3 +2,7 @@ ansible-dnac-modules
 Copyright (c) 2019 World Wide Technology
 
 This project includes software developed at World Wide Technology.
+
+This project includes:
+  geopy, timezonefinder under the MIT license
+  requests under the Apache license
