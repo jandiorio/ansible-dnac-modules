@@ -115,6 +115,7 @@ class DnaCenter(object):
 
         return response
 
+
     #generalized get object function
     def get_obj(self):
         """
@@ -134,6 +135,7 @@ class DnaCenter(object):
             self.result['original_message'] = response
             self.module.fail_json(msg='Failed to get object!', **self.result)
 
+
     # generalized create call
     def create_obj(self, payload):
         """
@@ -146,24 +148,34 @@ class DnaCenter(object):
 
         payload = json.dumps(payload)
         url = "https://" + self.params['host'] + '/' + self.api_path.rstrip('/')
-        response = self.session.post(url, data=payload)
+        
+        if not self.module.check_mode:
+            
+            response = self.session.post(url, data=payload)
+            if response.status_code in [200, 201, 202]:
+                r = response.json()
+                try: 
+                    task_response = self.task_checker(r['response']['taskId'])
+                except Exception as e:
+                    self.result['original_message'] = e
+                    self.module.fail_json(msg="Failed at task_checker")
 
-        if response.status_code in [200, 201, 202]:
-            r = response.json()
-            task_response = self.task_checker(r['response']['taskId'])
-
-            if not task_response.get('isError'):
-                self.result['changed'] = True
-                self.result['original_message'] = task_response
-                self.module.exit_json(msg='Created object successfully.', **self.result)
-            elif task_response.get('isError'):
+                if not task_response.get('isError'):
+                    self.result['changed'] = True
+                    self.result['original_message'] = task_response
+                    self.module.exit_json(msg='Created object successfully.', **self.result)
+                elif task_response.get('isError'):
+                    self.result['changed'] = False
+                    self.result['original_message'] = task_response
+                    self.module.fail_json(msg='Failed to create object!', **self.result)
+            else:
                 self.result['changed'] = False
-                self.result['original_message'] = task_response
+                self.result['original_message'] = response
                 self.module.fail_json(msg='Failed to create object!', **self.result)
-        else:
-            self.result['changed'] = False
-            self.result['original_message'] = response
-            self.module.fail_json(msg='Failed to create object!', **self.result)
+        else: 
+            self.result['changed'] = True
+            self.module.exit_json(msg='In check_mode.  Changes would be required.', **self.result)
+
 
     # generalized delete call
     def delete_obj(self, payload):
@@ -172,24 +184,28 @@ class DnaCenter(object):
         :param payload: ID of the attribute to be deleted.
         :return: JSON data structure returned from a successful call or the response object.
         """
-
-        url = 'https://' + self.params['host'] + '/' + self.api_path.rstrip('/') + '/' + payload
-        response = self.session.delete(url)
-        if response.status_code in [200, 201, 202]:
-            r = response.json()
-            task_response = self.task_checker(r['response']['taskId'])
-            if not task_response.get('isError'):
-                self.result['changed'] = True
-                self.result['original_message'] = task_response
-                self.module.exit_json(msg='Deleted object successfully.', **self.result)
-            elif task_response.get('isError'):
+        if not self.module.check_mode:
+            url = 'https://' + self.params['host'] + '/' + self.api_path.rstrip('/') + '/' + payload
+            response = self.session.delete(url)
+            if response.status_code in [200, 201, 202]:
+                r = response.json()
+                task_response = self.task_checker(r['response']['taskId'])
+                if not task_response.get('isError'):
+                    self.result['changed'] = True
+                    self.result['original_message'] = task_response
+                    self.module.exit_json(msg='Deleted object successfully.', **self.result)
+                elif task_response.get('isError'):
+                    self.result['changed'] = False
+                    self.result['original_message'] = task_response
+                    self.module.fail_json(msg='Failed to delete object!', **self.result)
+            else:
                 self.result['changed'] = False
-                self.result['original_message'] = task_response
-                self.module.fail_json(msg='Failed to delete object!', **self.result)
-        else:
-            self.result['changed'] = False
-            self.result['original_message'] = response.text
-            self.module.fail_json(msg='Failed to create object!', **self.result)
+                self.result['original_message'] = response.text
+                self.module.fail_json(msg='Failed to create object!', **self.result)
+        else: 
+            self.result['changed'] = True
+            self.module.exit_json(msg='In check_mode.  Changes would be required.', **self.result)
+
 
     # generalized update call
     def update_obj(self, payload):
@@ -215,12 +231,15 @@ class DnaCenter(object):
     # Group ID lookup
     def get_group_id(self, group_name):
 
-        self.api_path = 'api/v1/group'
-        groups = self.get_obj()
-        group_ids = [group['id'] for group in groups['response'] if group['name'] == group_name]
-        if len(group_ids) == 1:
-            group_id = group_ids[0]
-            return group_id
+        if self.module.params['group_name'] == '-1':
+            return '-1'
+        else:
+            self.api_path = 'api/v1/group'
+            groups = self.get_obj()
+            group_ids = [group['id'] for group in groups['response'] if group['name'] == group_name]
+            if len(group_ids) == 1:
+                group_id = group_ids[0]
+                return group_id
 
 
     def parse_geo(self, address):

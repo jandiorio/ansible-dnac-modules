@@ -2,6 +2,9 @@
 # Copyright (c) 2018 World Wide Technology, Inc.
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
     'status': ['preview'],
@@ -135,27 +138,19 @@ def main():
         group_name=dict(type='str', default='-1')
         )
 
-    result = dict(
-        changed=False,
-        original_message='',
-        message='')
-
     module = AnsibleModule(
         argument_spec = module_args,
-        supports_check_mode = False
+        supports_check_mode = True
         )
 
     #  Build the payload dictionary
     payload = [
         {"instanceType":"ip",
-        "instanceUuid": "",
         "namespace":"global",
         "type": "ip.address",
         "key":"dhcp.server",
         "value": "",
-        "groupUuid":"-1",
-        "inheritedGroupUuid": "",
-        "inheritedGroupName": ""
+        "groupUuid":"-1"
         }
         ]
 
@@ -163,25 +158,26 @@ def main():
     dnac = DnaCenter(module)
 
     # obtain the groupUuid and update the payload dictionary
-    if module.params['group_name'] == '-1':
-        group_id = '-1'
-    else:
-        group_id = dnac.get_group_id(module.params['group_name'])
+    group_id = dnac.get_group_id(module.params['group_name'])
 
     if group_id:
         payload[0].update({'groupUuid': group_id})
     else:
-        result['changed'] = False
-        result['original_message'] = group_id
-        module.fail_json(msg='Failed to create DHCP server! Unable to locate group provided.', **result)
+        dnac.result['changed'] = False
+        dnac.result['original_message'] = group_id
+        module.fail_json(msg='Failed to create DHCP server! Unable to locate group provided.', **dnac.result)
 
     # Support multiple DHCP servers
     _dhcp_servers = module.params['dhcp_servers']
     payload[0].update({'value': _dhcp_servers})
 
     # # check if the configuration is already in the desired state
-    dnac.api_path = 'api/v1/commonsetting/global/' + group_id
+    dnac.api_path = 'api/v1/commonsetting/global/' + group_id + '?key=dhcp.server'
     settings = dnac.get_obj()
+
+    # Save the existing and proposed datasets
+    dnac.result['previous'] = settings['response']
+    dnac.result['proprosed'] = payload
 
     for setting in settings['response']:
         if setting['key'] == payload[0]['key']:
@@ -190,9 +186,9 @@ def main():
                 if setting['value'] != payload[0]['value']:
                     dnac.create_obj(payload)
                 else:
-                    result['changed'] = False
-                    result['msg'] = 'Already in desired state.'
-                    module.exit_json(**result)
+                    dnac.result['changed'] = False
+                    dnac.result['msg'] = 'Already in desired state.'
+                    module.exit_json(**dnac.result)
 
     if _setting_exists == False:
         dnac.create_obj(payload)
