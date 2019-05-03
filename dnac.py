@@ -92,6 +92,7 @@ class DnaCenter(object):
         # provide session object to functions
         return self.session
 
+
     def task_checker(self, task_id):
         """
         Obtain the status of the task based on taskId for asynchronous operations.
@@ -228,11 +229,13 @@ class DnaCenter(object):
             self.result['original_message'] = response
             self.module.fail_json(msg='Failed to create object!', **self.result)
 
+
     # Group ID lookup
     def get_group_id(self, group_name):
 
-        if self.module.params['group_name'] == '-1':
-            return '-1'
+        if (self.module.params['group_name'] == '-1' or 
+            self.module.params['group_name'].lower() == 'global'):
+                return '-1'
         else:
             self.api_path = 'api/v1/group'
             groups = self.get_obj()
@@ -268,6 +271,7 @@ class DnaCenter(object):
                       }
         return attributes
 
+
     def timezone_lookup(self, address):
         """
         Provide for automated timezone resolution based on physical address provided.  Avoid long lookups or specific
@@ -282,7 +286,43 @@ class DnaCenter(object):
         tz = tf.timezone_at(lng=location_attributes['longitude'], lat=location_attributes['latitude'])
         return tz
 
+    def process_common_settings(self, payload, group_id):
 
+        if group_id:
+            payload[0].update({'groupUuid': group_id})
+        else:
+            self.result['changed'] = False
+            self.result['original_message'] = group_id
+            self.module.fail_json(msg='Failed to create SNMP server! Unable to locate group provided.', **self.result)
+
+        # Define local variables 
+        state = self.module.params['state']
+
+        # Get current settings
+        settings = self.get_obj()
+        settings = settings['response']
+        setting_count = len(settings)
+
+        # Save the existing and proposed datasets
+        self.result['previous'] = settings
+        self.result['proprosed'] = payload
+        
+        if state == 'present': 
+            if setting_count == 1:
+            # compare previous to proposed 
+                if settings[0]['value'] != payload[0]['value']:
+                    self.create_obj(payload)
+                else:
+                    self.result['changed'] = False
+                    self.result['msg'] = 'Already in desired state.'
+                    self.module.exit_json(**self.result)
+            elif setting_count == 0: 
+                # create the object
+                self.create_obj(payload)
+
+        elif state == 'absent':
+            payload[0].update({'value':[]})
+            self.create_obj(payload)
 def main():
     pass
 

@@ -158,17 +158,21 @@ from ansible.module_utils.network.dnac.dnac import DnaCenter,dnac_argument_spec
 # -----------------------------------------------
 
 def main():
-    _setting_exists = False
     module_args = dnac_argument_spec
     module_args.update(
         group_name=dict(type='str',default='-1'),
-        syslog_servers=dict(type='list', required=True)
+        syslog_servers=dict(type='list', required=False, default='')
         )
 
     module = AnsibleModule(
         argument_spec = module_args,
         supports_check_mode = True
         )
+
+    #  Define Local Variables 
+    state = module.params['state']
+    group_name = module.params['group_name']
+    syslog_servers = module.params['syslog_servers']
 
     #  Build the payload dictionary
     payload = [
@@ -177,8 +181,7 @@ def main():
           "namespace":"global",
           "type": "ip.address",
           "key":"syslog.server",
-          "value":[
-                 ],
+          "value": syslog_servers,
           "groupUuid":"-1",
         }
       ]
@@ -187,47 +190,12 @@ def main():
     dnac = DnaCenter(module)
 
     # obtain the groupUuid and update the payload dictionary
-    if module.params['group_name'] == '-1':
-        group_id = '-1'
-    else:
-        group_id = dnac.get_group_id(module.params['group_name'])
-
-    if group_id:
-        payload[0].update({'groupUuid': group_id})
-    else:
-        dnac.result['changed'] = False
-        dnac.result['original_message'] = group_id
-        module.fail_json(msg='Failed to create syslog server! Unable to locate group provided.', **dnac.result)
-
-    # Support multiple syslog servers
-    _syslog_servers = module.params['syslog_servers']
-    payload[0].update({'value': _syslog_servers})
+    group_id = dnac.get_group_id(group_name)
     
-    # # check if the configuration is already in the desired state
+    # Set API Path
     dnac.api_path = 'api/v1/commonsetting/global/' + group_id + '?key=syslog.server'
-    settings = dnac.get_obj()
     
-    syslog_settings = [ setting for setting in settings['response'] ]
-    
-    dnac.result['previous'] = settings['response']
-    dnac.result['proprosed'] = payload
-
-    if len(syslog_settings) == 1:
-        syslog_settings = syslog_settings[0]
-    
-        if len(syslog_settings['value']) > 0:
-            _setting_exists = True
-            if syslog_settings['value'] != payload[0]['value']:
-                dnac.create_obj(payload)
-            else:
-                dnac.result['changed'] = False
-                dnac.result['msg'] = 'Already in desired state.'
-                module.exit_json(**dnac.result)
-        else:
-            dnac.create_obj(payload)
-    elif len(syslog_settings) == 0:
-        # no setting exists
-        dnac.create_obj(payload)
+    dnac.process_common_settings(payload, group_id)
 
 if __name__ == "__main__":
   main()

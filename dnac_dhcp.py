@@ -122,6 +122,38 @@ EXAMPLES = r'''
     dhcp_server: 192.168.200.1 192.168.200.2
 
 '''
+RETURN = r'''
+previous:
+  description:  Configuration from DNA Center prior to any changes. 
+  returned: success
+  type: list
+  sample:
+    - groupUuid: 91404471-9c8d-492c-9c4c-230c7fd54bf9
+      inheritedGroupName: Global
+      inheritedGroupUuid: '-1'
+      instanceType: ip
+      instanceUuid: d069b8ac-39c6-4379-98d9-ac198675c410
+      key: dhcp.server
+      namespace: global
+      type: ip.address
+      value:
+      - 192.168.200.1
+      - 192.168.200.2
+      version: 48
+proprosed:
+  description:  Configuration to be sent to DNA Center.
+  returned: success
+  type: list
+  sample:
+    - groupUuid: 91404471-9c8d-492c-9c4c-230c7fd54bf9
+      instanceType: ip
+      key: dhcp.server
+      namespace: global
+      type: ip.address
+      value:
+      - 192.168.200.1
+      - 192.168.200.2
+'''
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.network.dnac.dnac import DnaCenter,dnac_argument_spec
@@ -134,7 +166,7 @@ def main():
     _setting_exists = False
     module_args = dnac_argument_spec
     module_args.update(
-        dhcp_servers=dict(type='list', required=True),
+        dhcp_servers=dict(type='list', required=False),
         group_name=dict(type='str', default='-1')
         )
 
@@ -142,6 +174,11 @@ def main():
         argument_spec = module_args,
         supports_check_mode = True
         )
+    
+    #  Define Local Variables 
+    state = module.params['state']
+    dhcp_servers = module.params['dhcp_servers']
+    group_name = module.params['group_name']
 
     #  Build the payload dictionary
     payload = [
@@ -149,7 +186,7 @@ def main():
         "namespace":"global",
         "type": "ip.address",
         "key":"dhcp.server",
-        "value": "",
+        "value": dhcp_servers,
         "groupUuid":"-1"
         }
         ]
@@ -158,40 +195,12 @@ def main():
     dnac = DnaCenter(module)
 
     # obtain the groupUuid and update the payload dictionary
-    group_id = dnac.get_group_id(module.params['group_name'])
+    group_id = dnac.get_group_id(group_name)
 
-    if group_id:
-        payload[0].update({'groupUuid': group_id})
-    else:
-        dnac.result['changed'] = False
-        dnac.result['original_message'] = group_id
-        module.fail_json(msg='Failed to create DHCP server! Unable to locate group provided.', **dnac.result)
-
-    # Support multiple DHCP servers
-    _dhcp_servers = module.params['dhcp_servers']
-    payload[0].update({'value': _dhcp_servers})
-
-    # # check if the configuration is already in the desired state
+    # Set the api_path
     dnac.api_path = 'api/v1/commonsetting/global/' + group_id + '?key=dhcp.server'
-    settings = dnac.get_obj()
-
-    # Save the existing and proposed datasets
-    dnac.result['previous'] = settings['response']
-    dnac.result['proprosed'] = payload
-
-    for setting in settings['response']:
-        if setting['key'] == payload[0]['key']:
-            _setting_exists = True
-            if setting['value'] != '':
-                if setting['value'] != payload[0]['value']:
-                    dnac.create_obj(payload)
-                else:
-                    dnac.result['changed'] = False
-                    dnac.result['msg'] = 'Already in desired state.'
-                    module.exit_json(**dnac.result)
-
-    if _setting_exists == False:
-        dnac.create_obj(payload)
+    
+    dnac.process_common_settings(payload, group_id)
 
 if __name__ == "__main__":
-  main()
+    main()

@@ -83,7 +83,8 @@ options:
   banner_message: 
       description: 
           - Enter the desired Message of the Day banner to post to Cisco DNA Center. 
-      required: true
+      required: false
+      default: ''
   group_name: 
       description: 
           - group_name is the name of the group in the hierarchy where you would like to apply the banner. 
@@ -171,7 +172,7 @@ def main():
     _banner_exists = False
     module_args = dnac_argument_spec
     module_args.update(
-        banner_message=dict(type='str', required=True),
+        banner_message=dict(type='str',default='', required=False),
         group_name=dict(type='str',default='-1'), 
         retain_banner=dict(type='bool', default=True)
         )
@@ -180,6 +181,12 @@ def main():
         argument_spec = module_args,
         supports_check_mode = True
         )
+    
+    #  Set Local Variables 
+    banner_message = module.params['banner_message']
+    retain_banner = module.params['retain_banner']
+    group_name = module.params['group_name']
+    state = module.params['state']
 
     #  Build the payload dictionary
     payload = [
@@ -189,8 +196,8 @@ def main():
         "key":"device.banner",
         "value": [
             {
-              "bannerMessage": module.params['banner_message'],
-              "retainExistingBanner": True #module.params['keep_existing']
+              "bannerMessage": banner_message,
+              "retainExistingBanner": retain_banner
         }],
         "groupUuid":"-1"
         }
@@ -200,12 +207,10 @@ def main():
     dnac = DnaCenter(module)
 
     # obtain the groupUuid and update the payload dictionary
-    group_id = dnac.get_group_id(module.params['group_name'])
-
-    payload[0].update({'groupUuid' : group_id})
+    group_id = dnac.get_group_id(group_name)
 
     # set the retain banner attribute 
-    if module.params['retain_banner']:
+    if retain_banner:
         payload[0]['value'][0]['retainExistingBanner'] = True
     else: 
         payload[0]['value'][0]['retainExistingBanner'] = False
@@ -213,27 +218,7 @@ def main():
     # set the api_path
     dnac.api_path = 'api/v1/commonsetting/global/' + group_id + '?key=device.banner'
 
-    # check if the configuration is already in the desired state
-    settings = dnac.get_obj()
-    
-    # capture the existing and proposed configs
-    dnac.result['previous'] = settings['response']
-    dnac.result['proprosed'] = payload
-   
-    for setting in settings['response']:
-        if setting['key'] == 'device.banner':
-            _banner_exists = True
-            if (setting['value'][0]['bannerMessage'] != payload[0]['value'][0]['bannerMessage'] or
-                setting['value'][0]['retainExistingBanner'] != payload[0]['value'][0]['retainExistingBanner']):
-                    dnac.create_obj(payload)
-            else:
-                dnac.result['changed'] = False
-                dnac.result['msg'] = 'Already in desired state.'
-                module.exit_json(**dnac.result) 
-
-    if not _banner_exists:
-        dnac.create_obj(payload)
-
+    dnac.process_common_settings(payload, group_id)
 
 if __name__ == "__main__":
   main()

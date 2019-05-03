@@ -3,6 +3,9 @@
 # Copyright (c) 2018, World Wide Technology, Inc.
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
     'status' : ['preview'],
@@ -35,17 +38,17 @@ options:
     choices: 
       - 80
       - 443
-    version_added: "2.5"
+
   username: 
     description: 
       - Provide the username for the connection to the Cisco DNA Center Controller.
     required: true
-    version_added: "2.5"        
+
   password: 
     description: 
       - Provide the password for connection to the Cisco DNA Center Controller.
     required: true
-    version_added: "2.5"
+
   use_proxy: 
     description: 
       - Enter a boolean value for whether to use proxy or not.  
@@ -54,7 +57,7 @@ options:
     choices:
       - true
       - false
-    version_added: "2.5"
+
   use_ssl: 
     description: 
       - Enter the boolean value for whether to use SSL or not.
@@ -63,13 +66,13 @@ options:
     choices: 
       - true
       - false
-    version_added: "2.5"
+
   timeout: 
     description: 
       - The timeout provides a value for how long to wait for the executed command complete.
     required: false
     default: 30
-    version_added: "2.5"
+
   validate_certs: 
     description: 
       - Specify if verifying the certificate is desired.
@@ -78,7 +81,7 @@ options:
     choices: 
       - true
       - false
-    version_added: "2.5"
+
   state: 
     description: 
       - State provides the action to be executed using the terms present, absent, etc.
@@ -87,19 +90,20 @@ options:
     choices: 
       - present
       - absent
-    version_added: "2.5"  
+
   timezone:
     description:
       - "The timezone string matching the timezone you are targeting. example: America/Chicago"
     required: false
     type: string
-    version_added: "2.5"
+
   group_name:
     description:
       - Name of the group where the setting will be applied.  
     required: false
     default: Global
     type: string
+
   location: 
     description:
       - address of a location in the timezone. A lookup will be performed to resolve the timezone.
@@ -133,7 +137,34 @@ EXAMPLES = r'''
 '''
 
 RETURN = r'''
-
+previous:
+  description:  Configuration from DNA Center prior to any changes. 
+  returned: success
+  type: list
+  sample:
+    - groupUuid: 91404471-9c8d-492c-9c4c-230c7fd54bf9
+      inheritedGroupName: ''
+      inheritedGroupUuid: ''
+      instanceType: timezone
+      instanceUuid: cae8ced9-eab7-4dae-b1b9-1bd300a58311
+      key: timezone.site
+      namespace: global
+      type: timezone.setting
+      value: []
+      version: 2
+proprosed:
+  description:  Configuration to be sent to DNA Center.
+  returned: success
+  type: list
+  sample:
+    - groupUuid: 91404471-9c8d-492c-9c4c-230c7fd54bf9
+      instanceType: timezone
+      instanceUuid: ''
+      key: timezone.site
+      namespace: global
+      type: timezone.setting
+      value:
+      - America/Chicago
 '''
 
 from ansible.module_utils.basic import AnsibleModule
@@ -147,7 +178,6 @@ from ansible.module_utils.network.dnac.dnac import DnaCenter,dnac_argument_spec
 # -----------------------------------------------
 
 def main():
-    _setting_exists = False
     module_args = dnac_argument_spec
     module_args.update(
         timezone=dict(type='str', default='GMT'),
@@ -155,15 +185,16 @@ def main():
         location=dict(type='str')
         )
 
-    result = dict(
-        changed=False,
-        original_message='',
-        message='')
-
     module = AnsibleModule(
         argument_spec = module_args,
-        supports_check_mode = False
+        supports_check_mode = True
         )
+
+    #  set local variables 
+    state = module.params['state']
+    group_name = module.params['group_name']
+    location = module.params['location']
+    timezone = module.params['timezone']
 
     #  Build the payload dictionary
     payload = [
@@ -175,9 +206,7 @@ def main():
         "value":[
             ""
           ],
-        "groupUuid":"-1",
-        "inheritedGroupUuid": "",
-        "inheritedGroupName": ""
+        "groupUuid":"-1"
         }
         ]
 
@@ -185,44 +214,19 @@ def main():
     dnac = DnaCenter(module)
 
     # obtain the groupUuid and update the payload dictionary
-    if module.params['group_name'] == '-1':
-        group_id = '-1'
-    else:
-        group_id = dnac.get_group_id(module.params['group_name'])
-
-    if group_id:
-        payload[0].update({'groupUuid': group_id})
-    else:
-        result['changed'] = False
-        result['original_message'] = group_id
-        module.fail_json(msg='Failed to create timezone! Unable to locate group provided.', **result)
+    group_id = dnac.get_group_id(group_name)
 
     # update payload with timezone
-    if module.params['location']:
-        timezone = dnac.timezone_lookup(module.params['location'])
-    else:
-        timezone = module.params['timezone']
+    if location:
+        timezone = dnac.timezone_lookup(location)
 
     payload[0].update({'value': [timezone]})
 
     # # check if the configuration is already in the desired state
-    dnac.api_path = 'api/v1/commonsetting/global/' + group_id
-    settings = dnac.get_obj()
+    dnac.api_path = 'api/v1/commonsetting/global/' + group_id + '?key=timezone.site'
     
-    # parse resultset for only setting desired
-    timezone_setting = [setting for setting in settings['response'] if setting['key'] == 'timezone.site']
-    timezone_setting = timezone_setting[0]
-    
-    if len(timezone_setting['value']) > 0:
-        _setting_exists = True
-        if timezone_setting['value'] != payload[0]['value']:
-            dnac.create_obj(payload)
-        else:
-            result['changed'] = False
-            result['msg'] = 'Already in desired state.'
-            module.exit_json(**result)
-    else:
-        dnac.create_obj(payload)
+    # process common settings
+    dnac.process_common_settings(payload, group_id)
 
 if __name__ == "__main__":
   main()
