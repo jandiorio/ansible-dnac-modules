@@ -92,6 +92,7 @@ class DnaCenter(object):
         # provide session object to functions
         return self.session
 
+
     def task_checker(self, task_id):
         """
         Obtain the status of the task based on taskId for asynchronous operations.
@@ -115,6 +116,7 @@ class DnaCenter(object):
 
         return response
 
+
     #generalized get object function
     def get_obj(self):
         """
@@ -134,6 +136,7 @@ class DnaCenter(object):
             self.result['original_message'] = response
             self.module.fail_json(msg='Failed to get object!', **self.result)
 
+
     # generalized create call
     def create_obj(self, payload):
         """
@@ -146,24 +149,34 @@ class DnaCenter(object):
 
         payload = json.dumps(payload)
         url = "https://" + self.params['host'] + '/' + self.api_path.rstrip('/')
-        response = self.session.post(url, data=payload)
+        
+        if not self.module.check_mode:
+            
+            response = self.session.post(url, data=payload)
+            if response.status_code in [200, 201, 202]:
+                r = response.json()
+                try: 
+                    task_response = self.task_checker(r['response']['taskId'])
+                except Exception as e:
+                    self.result['original_message'] = e
+                    self.module.fail_json(msg="Failed at task_checker")
 
-        if response.status_code in [200, 201, 202]:
-            r = response.json()
-            task_response = self.task_checker(r['response']['taskId'])
-
-            if not task_response.get('isError'):
-                self.result['changed'] = True
-                self.result['original_message'] = task_response
-                self.module.exit_json(msg='Created object successfully.', **self.result)
-            elif task_response.get('isError'):
+                if not task_response.get('isError'):
+                    self.result['changed'] = True
+                    self.result['original_message'] = task_response
+                    self.module.exit_json(msg='Created object successfully.', **self.result)
+                elif task_response.get('isError'):
+                    self.result['changed'] = False
+                    self.result['original_message'] = task_response
+                    self.module.fail_json(msg='Failed to create object!', **self.result)
+            else:
                 self.result['changed'] = False
-                self.result['original_message'] = task_response
+                self.result['original_message'] = response
                 self.module.fail_json(msg='Failed to create object!', **self.result)
-        else:
-            self.result['changed'] = False
-            self.result['original_message'] = response
-            self.module.fail_json(msg='Failed to create object!', **self.result)
+        else: 
+            self.result['changed'] = True
+            self.module.exit_json(msg='In check_mode.  Changes would be required.', **self.result)
+
 
     # generalized delete call
     def delete_obj(self, payload):
@@ -172,24 +185,28 @@ class DnaCenter(object):
         :param payload: ID of the attribute to be deleted.
         :return: JSON data structure returned from a successful call or the response object.
         """
-
-        url = 'https://' + self.params['host'] + '/' + self.api_path.rstrip('/') + '/' + payload
-        response = self.session.delete(url)
-        if response.status_code in [200, 201, 202]:
-            r = response.json()
-            task_response = self.task_checker(r['response']['taskId'])
-            if not task_response.get('isError'):
-                self.result['changed'] = True
-                self.result['original_message'] = task_response
-                self.module.exit_json(msg='Deleted object successfully.', **self.result)
-            elif task_response.get('isError'):
+        if not self.module.check_mode:
+            url = 'https://' + self.params['host'] + '/' + self.api_path.rstrip('/') + '/' + payload
+            response = self.session.delete(url)
+            if response.status_code in [200, 201, 202]:
+                r = response.json()
+                task_response = self.task_checker(r['response']['taskId'])
+                if not task_response.get('isError'):
+                    self.result['changed'] = True
+                    self.result['original_message'] = task_response
+                    self.module.exit_json(msg='Deleted object successfully.', **self.result)
+                elif task_response.get('isError'):
+                    self.result['changed'] = False
+                    self.result['original_message'] = task_response
+                    self.module.fail_json(msg='Failed to delete object!', **self.result)
+            else:
                 self.result['changed'] = False
-                self.result['original_message'] = task_response
-                self.module.fail_json(msg='Failed to delete object!', **self.result)
-        else:
-            self.result['changed'] = False
-            self.result['original_message'] = response.text
-            self.module.fail_json(msg='Failed to create object!', **self.result)
+                self.result['original_message'] = response.text
+                self.module.fail_json(msg='Failed to create object!', **self.result)
+        else: 
+            self.result['changed'] = True
+            self.module.exit_json(msg='In check_mode.  Changes would be required.', **self.result)
+
 
     # generalized update call
     def update_obj(self, payload):
@@ -212,15 +229,20 @@ class DnaCenter(object):
             self.result['original_message'] = response
             self.module.fail_json(msg='Failed to create object!', **self.result)
 
+
     # Group ID lookup
     def get_group_id(self, group_name):
 
-        self.api_path = 'api/v1/group'
-        groups = self.get_obj()
-        group_ids = [group['id'] for group in groups['response'] if group['name'] == group_name]
-        if len(group_ids) == 1:
-            group_id = group_ids[0]
-            return group_id
+        if (self.module.params['group_name'] == '-1' or 
+            self.module.params['group_name'].lower() == 'global'):
+                return '-1'
+        else:
+            self.api_path = 'api/v1/group'
+            groups = self.get_obj()
+            group_ids = [group['id'] for group in groups['response'] if group['name'] == group_name]
+            if len(group_ids) == 1:
+                group_id = group_ids[0]
+                return group_id
 
 
     def parse_geo(self, address):
@@ -249,6 +271,7 @@ class DnaCenter(object):
                       }
         return attributes
 
+
     def timezone_lookup(self, address):
         """
         Provide for automated timezone resolution based on physical address provided.  Avoid long lookups or specific
@@ -263,7 +286,43 @@ class DnaCenter(object):
         tz = tf.timezone_at(lng=location_attributes['longitude'], lat=location_attributes['latitude'])
         return tz
 
+    def process_common_settings(self, payload, group_id):
 
+        if group_id:
+            payload[0].update({'groupUuid': group_id})
+        else:
+            self.result['changed'] = False
+            self.result['original_message'] = group_id
+            self.module.fail_json(msg='Failed to create SNMP server! Unable to locate group provided.', **self.result)
+
+        # Define local variables 
+        state = self.module.params['state']
+
+        # Get current settings
+        settings = self.get_obj()
+        settings = settings['response']
+        setting_count = len(settings)
+
+        # Save the existing and proposed datasets
+        self.result['previous'] = settings
+        self.result['proprosed'] = payload
+        
+        if state == 'present': 
+            if setting_count == 1:
+            # compare previous to proposed 
+                if settings[0]['value'] != payload[0]['value']:
+                    self.create_obj(payload)
+                else:
+                    self.result['changed'] = False
+                    self.result['msg'] = 'Already in desired state.'
+                    self.module.exit_json(**self.result)
+            elif setting_count == 0: 
+                # create the object
+                self.create_obj(payload)
+
+        elif state == 'absent':
+            payload[0].update({'value':[]})
+            self.create_obj(payload)
 def main():
     pass
 

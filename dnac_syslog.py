@@ -3,12 +3,14 @@
 # Copyright (c) 2018, World Wide Technology, Inc.
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 ANSIBLE_METADATA = {
     'metadata_version': '1.0',
     'status' : ['development'],
     'supported_by' : 'jandiorio'
 }
-
 
 DOCUMENTATION = r'''
 ---
@@ -114,7 +116,35 @@ EXAMPLES = r'''
 '''
 
 RETURN = r'''
-#
+previous:
+  description:  Configuration from DNA Center prior to any changes. 
+  returned: success
+  type: list
+  sample: 
+    - groupUuid: '-1'
+      inheritedGroupName: ''
+      inheritedGroupUuid: ''
+      instanceType: ip
+      instanceUuid: 1ca3a703-4720-472d-9314-ba1fbe48e139
+      key: syslog.server
+      namespace: global
+      type: ip.address
+      value:
+      - 192.168.200.1
+      version: 32
+proposed: 
+  description:  Configuration to be sent to DNA Center.
+  returned: success
+  type: list
+  sample: 
+    - groupUuid: '-1'
+      instanceType: ip
+      key: syslog.server
+      namespace: global
+      type: ip.address
+      value:
+      - 192.168.200.1
+      - 192.168.200.2
 '''
 
 from ansible.module_utils.basic import AnsibleModule
@@ -128,81 +158,44 @@ from ansible.module_utils.network.dnac.dnac import DnaCenter,dnac_argument_spec
 # -----------------------------------------------
 
 def main():
-    _setting_exists = False
     module_args = dnac_argument_spec
     module_args.update(
         group_name=dict(type='str',default='-1'),
-        syslog_servers=dict(type='list', required=True)
+        syslog_servers=dict(type='list', required=False, default='')
         )
-
-    result = dict(
-        changed=False,
-        original_message='',
-        message='')
 
     module = AnsibleModule(
         argument_spec = module_args,
-        supports_check_mode = False
+        supports_check_mode = True
         )
+
+    #  Define Local Variables 
+    state = module.params['state']
+    group_name = module.params['group_name']
+    syslog_servers = module.params['syslog_servers']
 
     #  Build the payload dictionary
     payload = [
-        {"instanceType":"ip",
-        "instanceUuid": "",
-        "namespace":"global",
-        "type": "ip.address",
-        "key":"syslog.server",
-        "value":[
-                 ],
-        "groupUuid":"-1",
-        "inheritedGroupUuid": "",
-        "inheritedGroupName": ""
+        {
+          "instanceType":"ip",
+          "namespace":"global",
+          "type": "ip.address",
+          "key":"syslog.server",
+          "value": syslog_servers,
+          "groupUuid":"-1",
         }
-        ]
+      ]
 
     # instansiate the dnac class
     dnac = DnaCenter(module)
 
     # obtain the groupUuid and update the payload dictionary
-    if module.params['group_name'] == '-1':
-        group_id = '-1'
-    else:
-        group_id = dnac.get_group_id(module.params['group_name'])
-
-    if group_id:
-        payload[0].update({'groupUuid': group_id})
-    else:
-        result['changed'] = False
-        result['original_message'] = group_id
-        module.fail_json(msg='Failed to create syslog server! Unable to locate group provided.', **result)
-
-    # Support multiple syslog servers
-    _syslog_servers = module.params['syslog_servers']
-    payload[0].update({'value': _syslog_servers})
-
-    # # check if the configuration is already in the desired state
-    dnac.api_path = 'api/v1/commonsetting/global/' + group_id
-    settings = dnac.get_obj()
+    group_id = dnac.get_group_id(group_name)
     
-    syslog_settings = [setting for setting in settings['response'] if setting['key'] == 'syslog.server']
+    # Set API Path
+    dnac.api_path = 'api/v1/commonsetting/global/' + group_id + '?key=syslog.server'
     
-    if len(syslog_settings) > 1:
-        syslog_settings = syslog_settings[0]
-    
-        if len(syslog_settings['value']) > 0:
-            _setting_exists = True
-            if syslog_settings['value'] != payload[0]['value']:
-                dnac.create_obj(payload)
-            else:
-                result['changed'] = False
-                result['msg'] = 'Already in desired state.'
-                module.exit_json(**result)
-        else:
-            dnac.create_obj(payload)
-    
-    elif len(syslog_settings) == 0:
-        # no setting exists
-        dnac.create_obj(payload)
+    dnac.process_common_settings(payload, group_id)
 
 if __name__ == "__main__":
   main()

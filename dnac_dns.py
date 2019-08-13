@@ -2,6 +2,9 @@
 # Copyright (c) 2018 World Wide Technology, Inc.
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
     'status': ['preview'],
@@ -87,7 +90,7 @@ options:
   primary_dns_server: 
     description: 
       - IP address of the primary DNS Server to manipulate.
-    required: true
+    required: false
     
   secondary_dns_server: 
     description: 
@@ -107,36 +110,64 @@ options:
 
 '''
 
-EXAMPLES = '''
+EXAMPLES = r'''
 
 - name: create dns server 
   dnac_dns:
-    host: 10.253.177.230
-    port: 443
-    username: "{{username}}"
-    password: "{{password}}"
+    host: "{{ dnac.hostname }}"
+    port: "{{ dnac.port }}"
+    username: "{{ dnac.username }}"
+    password: "{{ dnac.password }}"
     state: present
     primary_dns_server: 192.168.200.1
     secondary_dns_server: 192.168.200.2
-    domain_name: campus.wwtatc.local
+    domain_name: dna.center.local
 
 
 - name: delete dns server 
   dnac_dns:
-    host: 10.253.177.230
-    port: 443
-    username: "{{username}}"
-    password: "{{password}}"
+    host: "{{ dnac.hostname }}"
+    port: "{{ dnac.port }}"
+    username: "{{ dnac.username }}"
+    password: "{{ dnac.password }}"
     state: absent
-    primary_dns_server: 192.168.200.1
-    secondary_dns_server: 192.168.200.2
-    domain_name: campus.wwtatc.local
+
 
 '''
 
+RETURN = r'''
+previous:
+  description:  Configuration from DNA Center prior to any changes. 
+  returned: success
+  type: list
+  sample:
+    - groupUuid: '-1'
+      inheritedGroupName: ''
+      inheritedGroupUuid: ''
+      instanceType: dns
+      instanceUuid: 799b3bc7-61fa-41b2-8fb3-db611af9db67
+      key: dns.server
+      namespace: global
+      type: dns.setting
+      value: []
+      version: 52
+proprosed:
+  description:  Configuration to be sent to DNA Center.
+  returned: success
+  type: list
+  sample:
+    - groupUuid: '-1'
+      instanceType: dns
+      key: dns.server
+      namespace: global
+      type: dns.setting
+      value:
+      - domainName: campus.wwtatc.local
+        primaryIpAddress: 192.168.200.1
+        secondaryIpAddress: 192.168.200.2
+'''
 
 from ansible.module_utils.basic import AnsibleModule
-#import ansible.module_utils.network.dnac
 from ansible.module_utils.network.dnac.dnac import DnaCenter,dnac_argument_spec
 
 # -----------------------------------------------
@@ -147,40 +178,38 @@ from ansible.module_utils.network.dnac.dnac import DnaCenter,dnac_argument_spec
 # -----------------------------------------------
 
 def main():
-    _setting_exists = False
     module_args = dnac_argument_spec
     module_args.update(
-        primary_dns_server=dict(type='str', required=True),
+        primary_dns_server=dict(type='str', required=False, default=''),
         secondary_dns_server=dict(type='str', required=False),
-        domain_name=dict(type='str', required=True),
-        group_name=dict(type='str', default='-1')
+        domain_name=dict(type='str', required=False, default=''),
+        group_name=dict(type='str', required=False, default='-1')
         )
-
-    result = dict(
-        changed=False,
-        original_message='',
-        message='')
 
     module = AnsibleModule(
         argument_spec = module_args,
-        supports_check_mode = False
+        supports_check_mode = True
         )
+
+    #  Define local variables 
+    state = module.params['state']
+    domain_name = module.params['domain_name']
+    primary_dns_server = module.params['primary_dns_server']
+    secondary_dns_server = module.params['secondary_dns_server']
+    group_name = module.params['group_name']
 
     #  Build the payload dictionary
     payload = [
         {"instanceType":"dns",
-        "instanceUuid": "",
         "namespace":"global",
         "type": "dns.setting",
         "key":"dns.server",
         "value":[{
-                 "domainName" : module.params['domain_name'],
-                 "primaryIpAddress":module.params['primary_dns_server'],
-                 "secondaryIpAddress":module.params['secondary_dns_server']
+                 "domainName" : domain_name,
+                 "primaryIpAddress": primary_dns_server,
+                 "secondaryIpAddress": secondary_dns_server
                  }],
         "groupUuid":"-1",
-        "inheritedGroupUuid": "",
-        "inheritedGroupName": ""
         }
         ]
 
@@ -188,35 +217,12 @@ def main():
     dnac = DnaCenter(module)
 
     # obtain the groupUuid and update the payload dictionary
-    if module.params['group_name'] == '-1':
-        group_id = '-1'
-    else:
-        group_id = dnac.get_group_id(module.params['group_name'])
+    group_id = dnac.get_group_id(group_name)
 
-    if group_id:
-        payload[0].update({'groupUuid': group_id})
-    else:
-        result['changed'] = False
-        result['original_message'] = group_id
-        module.fail_json(msg='Failed to create DNS server! Unable to locate group provided.', **result)
-
-    # # check if the configuration is already in the desired state
-    dnac.api_path = 'api/v1/commonsetting/global/' + group_id
-    settings = dnac.get_obj()
-
-    for setting in settings['response']:
-        if setting['key'] == payload[0]['key']:
-            _setting_exists = True
-            if setting['value'] != '':
-                if setting['value'] != payload[0]['value']:
-                    dnac.create_obj(payload)
-                else:
-                    result['changed'] = False
-                    result['msg'] = 'Already in desired state.'
-                    module.exit_json(**result)
-
-    if _setting_exists == False:
-        dnac.create_obj(payload)
+    # Set the api_path
+    dnac.api_path = 'api/v1/commonsetting/global/' + group_id + '?key=dns.server'
+    
+    dnac.process_common_settings(payload, group_id)
 
 if __name__ == "__main__":
   main()

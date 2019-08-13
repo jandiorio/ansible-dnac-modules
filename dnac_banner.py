@@ -3,6 +3,9 @@
 # Copyright (c) 2018, World Wide Technology, Inc.
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
     'status' : ['preview'],
@@ -24,7 +27,6 @@ options:
     description: 
     - Host is the target Cisco DNA Center controller to execute against. 
     required: true
-    version_added: "2.5"
   port: 
       description: 
           - Port is the TCP port for the HTTP connection. 
@@ -33,17 +35,14 @@ options:
       choices: 
           - 80
           - 443
-      version_added: "2.5"
   username: 
       description: 
           - Provide the username for the connection to the Cisco DNA Center Controller.
-      required: true
-      version_added: "2.5"        
+      required: true      
   password: 
       description: 
           - Provide the password for connection to the Cisco DNA Center Controller.
       required: true
-      version_added: "2.5"
   use_proxy: 
       description: 
           - Enter a boolean value for whether to use proxy or not.  
@@ -52,7 +51,6 @@ options:
       choices:
           - true
           - false
-      version_added: "2.5"
   use_ssl: 
       description: 
           - Enter the boolean value for whether to use SSL or not.
@@ -61,13 +59,11 @@ options:
       choices: 
           - true
           - false
-      version_added: "2.5"
   timeout: 
       description: 
           - The timeout provides a value for how long to wait for the executed command complete.
       required: false
       default: 30
-      version_added: "2.5"
   validate_certs: 
       description: 
           - Specify if verifying the certificate is desired.
@@ -76,7 +72,6 @@ options:
       choices: 
           - true
           - false
-      version_added: "2.5"
   state: 
       description: 
           - State provides the action to be executed using the terms present, absent, etc.
@@ -85,18 +80,21 @@ options:
       choices: 
           - present
           - absent
-      version_added: "2.5"
   banner_message: 
       description: 
           - Enter the desired Message of the Day banner to post to Cisco DNA Center. 
-      required: true
-      version_added: "2.5"
+      required: false
+      default: ''
   group_name: 
       description: 
           - group_name is the name of the group in the hierarchy where you would like to apply the banner. 
       required: false
       default: Global
-      version_added: "2.5"
+  retain_banner: 
+      description: 
+          - Boolean attribute for whether to overwrite the device existing banner or not.
+      required: false
+      default: true
 notes: 
 requirements:
     - geopy
@@ -130,7 +128,36 @@ EXAMPLES = r'''
 
 RETURN = r'''
 ---
-#
+previous:
+  description:  Configuration from DNA Center prior to any changes. 
+  returned: success
+  type: list
+  sample: 
+      - groupUuid: '-1'
+        inheritedGroupName: ''
+        inheritedGroupUuid: ''
+        instanceType: banner
+        instanceUuid: 6a8bbd9c-2346-46ae-8948-2010aad18f77
+        key: device.banner
+        namespace: global
+        type: banner.setting
+        value:
+        - bannerMessage: We are testing the new dnac.py logic
+          retainExistingBanner: true
+        version: 5
+      version: '1.0'
+proposed:
+  description:  Configuration to be sent to DNA Center.
+  returned: success
+  sample: 
+    - groupUuid: '-1'
+      instanceType: banner
+      key: device.banner
+      namespace: global
+      type: banner.setting
+      value:
+      - bannerMessage: We are testing the new dnac.py logic
+        retainExistingBanner: true
 '''
 
 from ansible.module_utils.basic import AnsibleModule
@@ -145,31 +172,34 @@ def main():
     _banner_exists = False
     module_args = dnac_argument_spec
     module_args.update(
-        banner_message=dict(type='str', required=True),
-        group_name=dict(type='str',default='-1')
+        banner_message=dict(type='str',default='', required=False),
+        group_name=dict(type='str',default='-1'), 
+        retain_banner=dict(type='bool', default=True)
         )
-
-    result = dict(
-        changed=False,
-        original_message='',
-        message='')
 
     module = AnsibleModule(
         argument_spec = module_args,
-        supports_check_mode = False
+        supports_check_mode = True
         )
+    
+    #  Set Local Variables 
+    banner_message = module.params['banner_message']
+    retain_banner = module.params['retain_banner']
+    group_name = module.params['group_name']
+    state = module.params['state']
 
     #  Build the payload dictionary
     payload = [
         {"instanceType":"banner",
-        "instanceUuid": "",
         "namespace":"global",
         "type": "banner.setting",
         "key":"device.banner",
-        "value":[module.params['banner_message']],
-        "groupUuid":"-1",
-        "inheritedGroupUuid": "",
-        "inheritedGroupName": ""
+        "value": [
+            {
+              "bannerMessage": banner_message,
+              "retainExistingBanner": retain_banner
+        }],
+        "groupUuid":"-1"
         }
         ]
 
@@ -177,34 +207,18 @@ def main():
     dnac = DnaCenter(module)
 
     # obtain the groupUuid and update the payload dictionary
-    if module.params['group_name'] == '-1':
-        group_id = '-1'
-    else:
-        group_id = dnac.get_group_id(module.params['group_name'])
+    group_id = dnac.get_group_id(group_name)
 
-    payload[0].update({'groupUuid' : group_id})
+    # set the retain banner attribute 
+    if retain_banner:
+        payload[0]['value'][0]['retainExistingBanner'] = True
+    else: 
+        payload[0]['value'][0]['retainExistingBanner'] = False
 
     # set the api_path
-    dnac.api_path = 'api/v1/commonsetting/global/' + group_id
+    dnac.api_path = 'api/v1/commonsetting/global/' + group_id + '?key=device.banner'
 
-    # check if the configuration is already in the desired state
-    settings = dnac.get_obj()
-
-    for setting in settings['response']:
-        if setting['key'] == 'device.banner':
-            _banner_exists = True
-            if setting['value'] != '':
-                if setting['value'] != payload[0]['value']:
-                    dnac.create_obj(payload)
-
-                else:
-                    result['changed'] = False
-                    result['msg'] = 'Already in desired state.'
-                    module.exit_json(**result)
-
-    if not _banner_exists:
-        dnac.create_obj(payload)
-
+    dnac.process_common_settings(payload, group_id)
 
 if __name__ == "__main__":
   main()

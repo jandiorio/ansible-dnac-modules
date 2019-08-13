@@ -3,6 +3,9 @@
 # Copyright (c) 2018, World Wide Technology, Inc.
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 ANSIBLE_METADATA = {
     'metadata_version': '1.0',
     'status' : ['development'],
@@ -89,8 +92,9 @@ options:
 
   ntp_servers:
     description: The ip address(es) of the ntp server(s).
-    required: true
+    required: false
     type: list
+
   group_name:
     description: Name of the group where the setting will be applied.  
     required: false
@@ -111,11 +115,37 @@ EXAMPLES = r'''
 '''
 
 RETURN = r'''
-#
+previous:
+  description:  Configuration from DNA Center prior to any changes. 
+  returned: success
+  type: list
+  sample:
+    - groupUuid: '-1'
+      inheritedGroupName: ''
+      inheritedGroupUuid: ''
+      instanceType: ip
+      instanceUuid: 77120a67-f579-4028-8529-7c68a0af5ada
+      key: ntp.server
+      namespace: global
+      type: ip.address
+      value: []
+      version: 60
+proprosed:
+  description:  Configuration to be sent to DNA Center.
+  returned: success
+  type: list
+  sample:
+    - groupUuid: '-1'
+      instanceType: ip
+      key: ntp.server
+      namespace: global
+      type: ip.address
+      value:
+      - 192.168.200.5
+      - 192.168.200.6
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from timezonefinder import TimezoneFinder
 from ansible.module_utils.network.dnac.dnac import DnaCenter,dnac_argument_spec
 
 # -----------------------------------------------
@@ -129,71 +159,39 @@ def main():
     _setting_exists = False
     module_args = dnac_argument_spec
     module_args.update(
-        ntp_servers=dict(type='list',required=True),
+        ntp_servers=dict(type='list',required=False),
         group_name=dict(type='str',default='-1')
         )
 
-    result = dict(
-        changed=False,
-        original_message='',
-        message='')
-
     module = AnsibleModule(
         argument_spec = module_args,
-        supports_check_mode = False
+        supports_check_mode = True
         )
+    #  Define Static Variables 
+    group_name = module.params['group_name']
+    ntp_servers = module.params['ntp_servers']
 
     #  Build the payload dictionary
     payload = [
         {"instanceType":"ip",
-        "instanceUuid": "",
         "namespace":"global",
         "type": "ip.address",
         "key":"ntp.server",
-        "value":[],
-        "groupUuid":"-1",
-        "inheritedGroupUuid": "",
-        "inheritedGroupName": ""
+        "value": ntp_servers,
+        "groupUuid":"-1"
         }
         ]
     # instansiate the dnac class
     dnac = DnaCenter(module)
 
     # obtain the groupUuid and update the payload dictionary
-    if module.params['group_name'] == '-1':
-        group_id = '-1'
-    else:
-        group_id = dnac.get_group_id(module.params['group_name'])
+    group_id = dnac.get_group_id(group_name)
 
-    if group_id:
-        payload[0].update({'groupUuid': group_id})
-    else:
-        result['changed'] = False
-        result['original_message'] = group_id
-        module.fail_json(msg='Failed to create NTP server! Unable to locate group provided.', **result)
+    # Set API Path 
+    dnac.api_path = 'api/v1/commonsetting/global/' + group_id + '?key=ntp.server'
 
-    # Support multiple snmp servers
-    _ntp_servers = module.params['ntp_servers']
-    payload[0].update({'value': _ntp_servers})
-
-    # # check if the configuration is already in the desired state
-    dnac.api_path = 'api/v1/commonsetting/global/' + group_id
-    settings = dnac.get_obj()
-
-    for setting in settings['response']:
-        if setting['key'] == payload[0]['key']:
-            _setting_exists = True
-            if setting['value'] != '':
-                if setting['value'] != payload[0]['value']:
-                    dnac.create_obj(payload)
-
-                else:
-                    result['changed'] = False
-                    result['msg'] = 'Already in desired state.'
-                    module.exit_json(**result)
-
-    if _setting_exists == False:
-        dnac.create_obj(payload)
+    # Process Setting Changes
+    dnac.process_common_settings(payload, group_id)
 
 if __name__ == "__main__":
   main()
