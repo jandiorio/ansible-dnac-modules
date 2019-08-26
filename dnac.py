@@ -11,7 +11,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 dnac_argument_spec = dict(
     host = dict(required=True, type='str'),
-    port = dict(required=False, type='str', default=443),
+    port = dict(required=False, type='str', default='443'),
     username = dict(required=True, type='str'),
     password = dict(required=True, type='str',no_log=True),
     use_proxy=dict(required=False, type='bool', default=True),
@@ -60,7 +60,7 @@ class DnaCenter(object):
 
         """
 
-        login_url = 'https://' + self.params['host'] + '/api/system/v1/auth/token/'
+        login_url = 'https://' + self.params['host'] + '/dna/system/api/v1/auth/token'
 
         # create a session object
         self.session = requests.session()
@@ -92,6 +92,40 @@ class DnaCenter(object):
         # provide session object to functions
         return self.session
 
+    def intent_task_checker(self, task_id):
+        """
+        Obtain the status of the task based on taskId for asynchronous operations.
+
+        :param task_id: Internal ID assigned to asynchronous tasks.
+
+        :return: Response data from the task status lookup.
+        """
+
+        # task_checker will loop until the given task completes and return the results of the task execution
+        
+        url = 'https://' + self.params['host'] + '/' + 'api/dnacaap/v1/dnacaap/management/execution-status/' + task_id
+        response = self.session.get(url)
+        response = response.json()
+        # response = response['response']
+
+        while not response.get('endTime'):
+            time.sleep(2)
+            response = self.session.get(url)
+            response = response.json()
+            # response = response['response']
+
+        if response.get('status') == 'SUCCESS' and response.get('bapiName').find('Update') >= 0:
+            return response
+        elif response.get('status') == "SUCCESS":
+            self.result['changed'] = True
+            self.result['original_message'] = response
+            self.module.exit_json(msg='Task Completed successfully.', **self.result)
+        elif response.get('status')=="FAILURE":
+            self.result['changed'] = False
+            self.result['original_message'] = response
+            self.module.fail_json(msg='Task Failed to Complete!', **self.result)
+
+        return response
 
     def task_checker(self, task_id):
         """
@@ -114,6 +148,15 @@ class DnaCenter(object):
             response = response.json()
             response = response['response']
 
+        if not response.get('isError'):
+            self.result['changed'] = True
+            self.result['original_message'] = response
+            self.module.exit_json(msg='Task completed successfully.', **self.result)
+        elif response.get('isError'):
+            self.result['changed'] = False
+            self.result['original_message'] = response
+            self.module.fail_json(msg='Task failed to complete.', **self.result)                        
+        
         return response
 
 
@@ -131,9 +174,14 @@ class DnaCenter(object):
         if response.status_code in [200, 201, 202]:
             r = response.json()
             return r
+        elif response.status_code in [500]:
+            # put in just for a bug in profiles get 
+            if response.text.find("Profile Not Found") >= 0:
+                r = []
+                return r
         else:
             self.result['changed'] = False
-            self.result['original_message'] = response
+            self.result['original_message'] = response.text
             self.module.fail_json(msg='Failed to get object!', **self.result)
 
 
@@ -146,8 +194,11 @@ class DnaCenter(object):
 
         :return: JSON data structure returned from a successful call or the response object.
         """
-
-        payload = json.dumps(payload)
+        try:
+            payload = json.dumps(payload)
+            # self.module.fail_json(msg=payload)
+        except Exception as e: 
+            self.module.fail_json(msg='failed to convert payload to json.  invalid json')
         url = "https://" + self.params['host'] + '/' + self.api_path.rstrip('/')
         
         if not self.module.check_mode:
@@ -156,19 +207,14 @@ class DnaCenter(object):
             if response.status_code in [200, 201, 202]:
                 r = response.json()
                 try: 
-                    task_response = self.task_checker(r['response']['taskId'])
+                    if url.find('intent') >= 0:
+                        task_response = self.intent_task_checker(r['executionId'])
+                    else: 
+                        task_response = self.task_checker(r['response']['taskId'])
+                        
                 except Exception as e:
                     self.result['original_message'] = e
-                    self.module.fail_json(msg="Failed at task_checker")
-
-                if not task_response.get('isError'):
-                    self.result['changed'] = True
-                    self.result['original_message'] = task_response
-                    self.module.exit_json(msg='Created object successfully.', **self.result)
-                elif task_response.get('isError'):
-                    self.result['changed'] = False
-                    self.result['original_message'] = task_response
-                    self.module.fail_json(msg='Failed to create object!', **self.result)
+                    self.module.fail_json(msg='Failed at task_checker', **self.result)
             else:
                 self.result['changed'] = False
                 self.result['original_message'] = response
@@ -190,15 +236,11 @@ class DnaCenter(object):
             response = self.session.delete(url)
             if response.status_code in [200, 201, 202]:
                 r = response.json()
-                task_response = self.task_checker(r['response']['taskId'])
-                if not task_response.get('isError'):
-                    self.result['changed'] = True
-                    self.result['original_message'] = task_response
-                    self.module.exit_json(msg='Deleted object successfully.', **self.result)
-                elif task_response.get('isError'):
-                    self.result['changed'] = False
-                    self.result['original_message'] = task_response
-                    self.module.fail_json(msg='Failed to delete object!', **self.result)
+                # if self.api_path.find('dna'):
+                if url.find('intent') >= 0:
+                    task_response = self.intent_task_checker(r['executionId'])
+                else: 
+                    task_response = self.task_checker(r['response']['taskId'])
             else:
                 self.result['changed'] = False
                 self.result['original_message'] = response.text
@@ -215,15 +257,11 @@ class DnaCenter(object):
 
         if response.status_code in [200, 201, 202]:
             r = response.json()
-            task_response = self.task_checker(r['response']['taskId'])
-            if not task_response.get('isError'):
-                self.result['changed'] = True
-                self.result['original_message'] = task_response
-                self.module.exit_json(msg='updated object successfully.', **self.result)
-            elif task_response.get('isError'):
-                self.result['changed'] = False
-                self.result['original_message'] = task_response
-                self.module.fail_json(msg='Failed to update object!', **self.result)
+            if url.find('intent') >= 0:
+                task_response = self.intent_task_checker(r['executionId'])
+            else: 
+                task_response = self.task_checker(r['response']['taskId'])
+                
         else:
             self.result['changed'] = False
             self.result['original_message'] = response
@@ -293,7 +331,7 @@ class DnaCenter(object):
         else:
             self.result['changed'] = False
             self.result['original_message'] = group_id
-            self.module.fail_json(msg='Failed to create SNMP server! Unable to locate group provided.', **self.result)
+            self.module.fail_json(msg='Failed to create setting! Unable to locate group provided.', **self.result)
 
         # Define local variables 
         state = self.module.params['state']

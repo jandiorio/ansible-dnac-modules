@@ -161,7 +161,8 @@ def main():
     module_args = dnac_argument_spec
     module_args.update(
         group_name=dict(type='str',default='-1'),
-        syslog_servers=dict(type='list', required=False, default='')
+        syslog_servers=dict(type='list', required=False), 
+        enable_dnac=dict(type='bool',required=False, default=True)
         )
 
     module = AnsibleModule(
@@ -173,16 +174,21 @@ def main():
     state = module.params['state']
     group_name = module.params['group_name']
     syslog_servers = module.params['syslog_servers']
+    enable_dnac = module.params['enable_dnac']
 
     #  Build the payload dictionary
     payload = [
+        {"instanceType": "ip",
+        "namespace":"global",
+        "type": "ip.address",
+        "key": "syslog.server",
+        "value": [
         {
-          "instanceType":"ip",
-          "namespace":"global",
-          "type": "ip.address",
-          "key":"syslog.server",
-          "value": syslog_servers,
-          "groupUuid":"-1",
+          "ipAddresses": syslog_servers,
+          "configureDnacIP": enable_dnac
+        }
+        ],
+        "groupUuid":"-1",
         }
       ]
 
