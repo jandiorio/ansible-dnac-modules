@@ -178,9 +178,9 @@ def main():
 
     #  Build the payload dictionary
     payload = [
-        {"instanceType": "ip",
+        {"instanceType": "syslog",
         "namespace":"global",
-        "type": "ip.address",
+        "type": "syslog.setting",
         "key": "syslog.server",
         "value": [
         {

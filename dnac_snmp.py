@@ -178,9 +178,9 @@ def main():
 
     #  Build the payload dictionary
     payload = [
-        {"instanceType":"ip",
+        {"instanceType":"snmp",
         "namespace":"global",
-        "type": "ip.address",
+        "type": "snmp.setting",
         "key":"snmp.trap.receiver",
         "value": [ 
           {  
