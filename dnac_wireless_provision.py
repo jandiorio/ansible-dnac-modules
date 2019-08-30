@@ -76,7 +76,7 @@ def main():
     
     # actions
     if module.params['state'] == 'present':
-        dnac.create_obj(payload)
+        dnac.update_obj(payload)
 
 if __name__ == "__main__":
     main()

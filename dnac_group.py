@@ -201,8 +201,11 @@ def main():
 
     #  Get the groups
     groups = dnac.get_obj()
-    _group_names = [group['name'] for group in groups['response']]
-
+    try: 
+      _group_names = [group['name'] for group in groups['response']]
+    except TypeError: 
+      module.fail_json(msg=groups)
+      
     # does group provided exist
     if module.params['group_name'] in _group_names:
         _group_exists = True

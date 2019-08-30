@@ -172,8 +172,19 @@ class DnaCenter(object):
         url = 'https://' + self.params['host'] + '/' + self.api_path.rstrip('/')
         response = self.session.get(url)
         if response.status_code in [200, 201, 202]:
-            r = response.json()
-            return r
+            try: 
+                r = response.json()
+                return r
+            except Exception as e:
+                r = []
+                return r
+            # if response.text.find('No_.*found'):
+            #     r = []
+            #     return r  
+            # else:
+            #     r = response.json()
+            #     return r
+                              
         elif response.status_code in [500]:
             # put in just for a bug in profiles get 
             if response.text.find("Profile Not Found") >= 0:
