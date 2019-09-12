@@ -33,12 +33,13 @@ def main():
         name=dict(type='str', required=True), 
         site=dict(type='str', required=False), 
         managed_ap_locations=dict(type='list', required=False),
-        interface_ip=dict(type='str', required=False),
-        interface_prefix_length=dict(type='str', required=False),
-        interface_gateway=dict(type='str', required=False), 
+        interface_ip=dict(type='str', required=False, default='1.1.1.1'),
+        interface_prefix_length=dict(type='str', required=False, default='24'),
+        interface_gateway=dict(type='str', required=False, default='1.1.1.2'), 
         lag_or_port_number=dict(type='str', required=False), 
         vlan=dict(type='str', required=False), 
-        interface=dict(type='str', required=False)
+        interface=dict(type='str', required=False), 
+        reprovision=dict(type='bool', required=False, default=False)
     )
 
     result = dict(
@@ -56,27 +57,55 @@ def main():
     {
         "deviceName": module.params['name'],
         "site": module.params['site'],
-        "managedAPLocations": module.params['managed_ap_locations'],
-        # "dynamicInterfaces": [
-        #     {
-        #         "interfaceIPAddress": module.params['interface_ip'],
-        #         "interfaceNetmaskInCIDR": module.params['interface_prefix_length'],
-        #         "interfaceGateway": module.params['interface_gateway'],
-        #         "lagOrPortNumber":module.params['lag_or_port_number'],
-        #         "vlanId": module.params['vlan'],
-        #         "interfaceName": module.params['interface'],
-        #     }
-        # ]
-    }
-]
+        "managedAPLocations": module.params['managed_ap_locations']
+        
+        }
+    ]
 
+    if module.params['interface']:
+        payload[0].update(
+            {"dynamicInterfaces": [
+                    {
+                        "interfaceIPAddress": module.params['interface_ip'],
+                        "interfaceNetmaskInCIDR": module.params['interface_prefix_length'],
+                        "interfaceGateway": module.params['interface_gateway'],
+                        "lagOrPortNumber":module.params['lag_or_port_number'],
+                        "vlanId": module.params['vlan'],
+                        "interfaceName": module.params['interface'],
+                    }
+                ]
+            }
+            )
+    
     # Instantiate the DnaCenter class object
     dnac = DnaCenter(module)
+    
+    # Check if Device Has been Provisioned
+    # dnac.api_path = 'dna/intent/api/v1/network-device?hostname=' + module.params['name']
+    # device = dnac.get_obj()
+
+    # if device['response']:
+    #     if device['response'][0]['location'] == None:
+    #         _PROVISIONED = False
+    #     else: 
+    #         _PROVISIONED = True
+    # else:
+    #     _PROVISIONED = False
+
+    if module.params['reprovision']:
+        _PROVISIONED = True
+    else: 
+        _PROVISIONED = False
+    # Reset API Path
     dnac.api_path = 'dna/intent/api/v1/wireless/provision'
     
     # actions
-    if module.params['state'] == 'present':
+    if module.params['state'] == 'present' and _PROVISIONED:
+        # module.exit_json(msg=payload)
         dnac.update_obj(payload)
-
+    elif module.params['state'] == 'present' and not _PROVISIONED:
+        # module.exit_json(msg='provision')
+        dnac.create_obj(payload)
+        
 if __name__ == "__main__":
     main()

@@ -275,8 +275,8 @@ class DnaCenter(object):
                 
         else:
             self.result['changed'] = False
-            self.result['original_message'] = response
-            self.module.fail_json(msg='Failed to create object!', **self.result)
+            self.result['original_message'] = response.text
+            self.module.fail_json(msg='Failed to update object!', **self.result)
 
 
     # Group ID lookup
