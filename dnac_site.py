@@ -13,9 +13,9 @@ ANSIBLE_METADATA = {
 DOCUMENTATION = r'''
 ---
 module: dnac_site
-short_description: Add or Delete groups in DNA Center
-description: Add or delete groups in the network hierarchy within Cisco DNA Center controller.
-version_added: "2.5"
+short_description: Add or Delete sites in DNA Center
+description: Add or delete sites in the network hierarchy within Cisco DNA Center controller.
+version_added: "2.8"
 author: 
   - Jeff Andiorio (@jandiorio)
     
@@ -89,58 +89,108 @@ options:
       - present
       - absent
   
-  group_name: 
+  name: 
     description: 
-      - Name of the group to modify.  
+      - Name of the site.  
     required: true
     
-  group_type: 
+  site_type: 
     description: 
-      - Manages the sites in DNAC
+      - type of site
     required: true
     default: area
     choices: 
       - area
       - building
+      - floor
     
-  group_parent_name: 
+  parent_name: 
     description: 
-      - DNS domain name of the environment within Cisco DNA Center
+      - name of the containing site 
     required: true
-                            
-  group_building_address: 
-    description: 
-      - group_name is the name of the group in the hierarchy where you would like to apply these settings. 
-    required: false
     default: Global
+                            
+  address: 
+    description: 
+      - site address of the building
+    required: false
 
+  latitude:
+    description: latitude of the building 
+    required: false
+  
+  longitude: 
+    description: 
+      - longitude of the building 
+    required: false
+    
+  rf_model:
+    description: 
+      - rf model for the floor
+    choices:
+      - 'Cubes And Walled Offices'
+      - 'Drywall Office Only'
+      - 'Indoor High Ceiling'
+      - 'Outdoor Open Space]'
+    required: false
+  
+  width:
+    description: 
+      - width of the floor 
+    required: false
+  
+  length:
+    description: 
+      - length of the floor
+    required: false
+  
+  height:
+    description: 
+      - height of the ceiling for the floor
+    required: false
 '''
 
 EXAMPLES = r'''
 
-- name: add group 
-  dnac_group:
-    host: 1.1.1.1
-    port: 443
-    username: "{{username}}"
-    password: "{{password}}"
-    state: present
-    group_name: "{{group_name}}"
-    group_type: "{{group_type}}"
-    group_parent_name: "{{group_parent_name}}"
-    group_building_address: "{{group_building_address}}"
+  - name: create areas
+    dnac_site:
+      host: "{{ inventory_hostname }}"
+      port: '443'
+      username: "{{ username }}"
+      password: "{{ password }}"
+      state: "{{ desired_state }}"
+      name: Site-1
+      site_type: area
+      parent_name: Global
 
-- name: delete group 
-  dnac_group:
-    host: 1.1.1.1
-    port: 443
-    username: "{{username}}"
-    password: "{{password}}"
-    state: absent
-    group_name: "{{group_name}}"
-    group_type: "{{group_type}}"
-    group_parent_name: "{{group_parent_name}}"
-    group_building_address: "{{group_building_address}}"
+  - name: create buildings
+    dnac_site:
+      host: "{{ inventory_hostname }}"
+      port: '443'
+      username: "{{ username }}"
+      password: "{{ password }}"
+      state: "{{ desired_state }}"
+      name: Building-1
+      site_type: building
+      parent_name: Site-a
+      address: 1 World Wide Way, St Louis, Mo
+      latitude: 38.540450
+      longitude: -90.443660
+
+  - name: create floors
+    dnac_site:
+      host: "{{ inventory_hostname }}"
+      port: '443'
+      username: "{{ username }}"
+      password: "{{ password }}"
+      state: "{{ desired_state }}"
+      name: Floor-1
+      site_type: floor
+      parent_name: Building-1
+      rf_model: 'Cubes And Walled Offices'
+      height: 10
+      width: 100
+      length: 200
 
 '''
 

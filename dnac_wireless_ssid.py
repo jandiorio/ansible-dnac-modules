@@ -11,15 +11,169 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 DOCUMENTATION = r'''
 ---
 module: dnac_wireless_ssid.py
-        
+short_description: Manage SSID
+description: manage the create/update/delete of SSIDs in DNAC
+version_added: "2.8"
+author: 
+  - Jeff Andiorio (@jandiorio)
+    
+requirements:
+  - requests 
+
+options:
+  host: 
+    description: 
+      - Host is the target Cisco DNA Center controller to execute against. 
+    required: true
+
+  port: 
+    description: 
+      - Port is the TCP port for the HTTP connection. 
+    required: false
+    default: 443
+    choices: 
+      - 80
+      - 443
+  
+  username: 
+    description: 
+      - Provide the username for the connection to the Cisco DNA Center Controller.
+    required: true
+          
+  password: 
+    description: 
+      - Provide the password for connection to the Cisco DNA Center Controller.
+    required: true
+  
+  use_proxy: 
+    description: 
+      - Enter a boolean value for whether to use proxy or not.  
+    required: false
+    default: true
+    choices:
+      - true
+      - false
+  
+  use_ssl: 
+    description: 
+      - Enter the boolean value for whether to use SSL or not.
+    required: false
+    default: true
+    choices: 
+      - true
+      - false
+  
+  timeout: 
+    description: 
+      - The timeout provides a value for how long to wait for the executed command complete.
+    required: false
+    default: 30
+  
+  validate_certs: 
+    description: 
+      - Specify if verifying the certificate is desired.
+    required: false
+    default: true
+    choices: 
+      - true
+      - false
+  
+  state: 
+    description: 
+      - State provides the action to be executed using the terms present, absent, etc.
+    required: false
+    default: present
+    choices: 
+      - present
+      - absent
+  
+  name: 
+    description: 
+      - Name of the wireless SSID
+    required: true
+    
+  security_level: 
+    description: 
+      - security level for the SSID
+    required: true
+    choices:
+      - WPA2_ENTERPRISE
+      - WPA2_PERSONAL
+      - OPEN
+  
+  passphrase: 
+    description: 
+      - secret passphrase for WPA2_PERSONAL
+    required: false
+                            
+  enable_fastlane:
+    description: 
+      - boolean to enable fastlane
+    required: false
+    default: false
+
+  enable_mac_filtering:
+    description: 
+      - boolean for enableing MAC filtering
+    required: false
+    default: false
+  
+  traffic_type: 
+    description: 
+      - type of traffic for SSID
+    required: false
+    choices: 
+      - voicedata
+      - data
+    default: voicedata
+
+  radio_policy: 
+    description: 
+      - SSID radio policy to associate
+    required: false
+    choices: 
+      - 'Dual band operation (2.4GHz and 5GHz)'
+      - 'Dual band operation with band select'
+      - '5GHz only'
+      - '2.4GHz only'
+
+  enable_broadcast_ssid:
+    description: 
+      - boolean for SSID broadcast
+    required: false
+    default: true
+  
+  fast_transition: 
+    description: 
+      - configuration of fast transition
+    required: false
+    choices: 
+      - 'Adaptive'
+      - 'Enable'
+      - 'Disable'
+    default: 'Disable'
+      
 '''
 
 EXAMPLES = r'''
 
+- name: build wireless ssid
+  dnac_wireless_ssid:
+    host: "{{ inventory_hostname }}"
+    port: '443'
+    username: "{{ username }}"
+    password: "{{ password }}"
+    state: present
+    #
+    name: 'SSID-1'
+    security_level: 'WPA2_PERSONAL'
+    passphrase: SUPERSECRET    
+
 '''
 
+
 RETURN = r'''
-#
+    #
 '''
 
 from ansible.module_utils.basic import AnsibleModule
