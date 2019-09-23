@@ -60,7 +60,9 @@ class DnaCenter(object):
 
         """
 
-        login_url = 'https://' + self.params['host'] + '/dna/system/api/v1/auth/token'
+        login_url = 'https://' + self.params['host'] + '/api/system/v1/auth/token'
+        # issue with 1.3.0.4 update broke the auth URI below - investigating
+        #login_url = 'https://' + self.params['host'] + '/dna/system/api/v1/auth/token'
 
         # create a session object
         self.session = requests.session()
