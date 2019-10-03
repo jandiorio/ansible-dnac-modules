@@ -143,6 +143,12 @@ options:
     type: string
     required: true
 
+  netconf_port: 
+    description: 
+      - Netconf Port to use for discovery
+    type: string
+    required: false
+
 '''
 
 EXAMPLES = r'''
@@ -185,7 +191,9 @@ def main():
         discovery_ip_filter_list=dict(type='str',required=False),
         discovery_ip_addr_list=dict(type='str',required=True),
         global_cli_cred=dict(type='str', required=True),
-        global_snmp_cred=dict(type='str',required=True)
+        global_snmp_cred=dict(type='str',required=True),
+        netconf_port=dict(type='str', required=False),
+        rediscovery=dict(type='bool', required=False, default=False)
     )
 
     result = dict(
@@ -232,6 +240,8 @@ def main():
         "retry": 3,
         "timeout": 5,
         "lldpLevel":"16",
+        "netconfPort": module.params['netconf_port'], 
+        "rediscovery": module.params['rediscovery']
 
         }
 
@@ -300,19 +310,26 @@ def main():
     '''
 
     #  Get the discoveries
-    dnac.api_path = 'api/v1/discovery'
+    dnac.api_path = 'api/v1/discovery' #'api/v1/discovery'
     discoveries = dnac.get_obj()
 
     _discovery_names = [discovery['name'] for discovery in discoveries['response']]
-
+    
     # does discovery provided exist
     if module.params['discovery_name'] in _discovery_names:
         _discovery_exists = True
+        _discovery_id = [ d['id'] for d in discoveries['response'] if d['name'] == module.params['discovery_name']][0]
     else:
         _discovery_exists = False
 
     # actions
-    if module.params['state'] == 'present' and _discovery_exists:
+    if module.params['state'] == 'present' and _discovery_exists and module.params['rediscovery']:
+        result['changed'] = True
+        dnac.api_path = 'api/v1/discovery'
+        payload.update({'id': _discovery_id })
+        dnac.update_obj(payload)
+        module.exit_json(msg='Discovery already exists.', **result)
+    elif module.params['state'] == 'present' and _discovery_exists:
         result['changed'] = False
         module.exit_json(msg='Discovery already exists.', **result)
     elif module.params['state'] == 'present' and not _discovery_exists:

@@ -162,7 +162,8 @@ def main():
     module_args = dnac_argument_spec
     module_args.update(
         group_name=dict(type='str',default='-1', required=False),
-        snmp_servers=dict(type='list', required=False)
+        snmp_servers=dict(type='list', required=False), 
+        enable_dnac=dict(type='bool',required=False, default=True)
         )
 
     module = AnsibleModule(
@@ -173,14 +174,20 @@ def main():
     state = module.params['state']
     snmp_servers = module.params['snmp_servers']
     group_name = module.params['group_name']
+    enable_dnac = module.params['enable_dnac']
 
     #  Build the payload dictionary
     payload = [
-        {"instanceType":"ip",
+        {"instanceType":"snmp",
         "namespace":"global",
-        "type": "ip.address",
+        "type": "snmp.setting",
         "key":"snmp.trap.receiver",
-        "value": snmp_servers,
+        "value": [ 
+          {  
+            "ipAddresses": snmp_servers,
+            "configureDnacIP": enable_dnac
+          }
+        ],
         "groupUuid":"-1",
         }
     ]

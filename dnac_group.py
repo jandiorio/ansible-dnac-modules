@@ -158,27 +158,6 @@ import sys
 
 __metaclass__ = type
 
-# def parse_geo(address):
-# 
-#     geolocator = Nominatim(user_agent='dnac_ansible',timeout=30)
-#     try:
-#         location = geolocator.geocode(address)
-#     except Exception as e:
-#         print(e)
-#         #debugging
-#         module.exit_json(msg='Failed to get location.', **result)
-#         sys.exit(0)
-# 
-#     location_parts = location.address.split(',')
-#     country = location_parts[len(location_parts) -1]
-#     attributes = {'address': location.address,
-#                   'country':country,
-#                   'latitude':location.latitude,
-#                   'longitude':location.longitude,
-#                   'type':'building'
-#                   }
-#     return attributes
-
 def main():
     _group_exists = False
     _parent_exists = False
@@ -222,8 +201,11 @@ def main():
 
     #  Get the groups
     groups = dnac.get_obj()
-    _group_names = [group['name'] for group in groups['response']]
-
+    try: 
+      _group_names = [group['name'] for group in groups['response']]
+    except TypeError: 
+      module.fail_json(msg=groups)
+      
     # does group provided exist
     if module.params['group_name'] in _group_names:
         _group_exists = True
