@@ -1,3 +1,8 @@
 .vscode/
 *.tar.gz
 *local*
+dnac_api_support.xlsx
+.vscode/settings.json
+scratch
+*.pyc
+*.backup
