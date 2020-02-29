@@ -17,6 +17,8 @@ The webinar below was hosted by Redhat and delivered by Jeff Andiorio of World W
 
 [WWT / Redhat Ansible Webinar](https://www.ansible.com/resources/webinars-training/lab-automation-by-wwt-with-ansible-tower-and-cisco-dna-center)
 
+AnsibleFest 2019 Presentation
+[DO I CHOOSE ANSIBLE, DNA CENTER OR BOTH?](https://www.ansible.com/do-i-choose-ansible-dna-center-or-both)
 
 Additional slides providing an overview of the modules can be found here:  [Ansible DNA Center Modules Overview](https://www.slideshare.net/secret/1l5xe5ORzTN3Uv)
 
@@ -103,7 +105,7 @@ no_log: true
 
 collections:
   - wwt.ansible_dnac
-git
+
 tasks:
 
 - name: set the banner
