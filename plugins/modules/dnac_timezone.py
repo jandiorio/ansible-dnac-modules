@@ -8,8 +8,8 @@ __metaclass__ = type
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
-    'status' : ['preview'],
-    'supported_by' : 'community'
+    'status': ['preview'],
+    'supported_by': 'community'
 }
 
 
@@ -168,7 +168,7 @@ proprosed:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac import DnaCenter,dnac_argument_spec
+from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac import DnaCenter, dnac_argument_spec
 
 # -----------------------------------------------
 #  define static required variales
@@ -177,38 +177,36 @@ from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac
 #  main
 # -----------------------------------------------
 
+
 def main():
     module_args = dnac_argument_spec
     module_args.update(
         timezone=dict(type='str', default='GMT'),
         group_name=dict(type='str', default='-1'),
         location=dict(type='str')
-        )
+    )
 
     module = AnsibleModule(
-        argument_spec = module_args,
-        supports_check_mode = True
-        )
+        argument_spec=module_args,
+        supports_check_mode=True
+    )
 
     #  set local variables
-    state = module.params['state']
     group_name = module.params['group_name']
     location = module.params['location']
     timezone = module.params['timezone']
 
     #  Build the payload dictionary
     payload = [
-        {"instanceType":"timezone",
-        "instanceUuid": "",
-        "namespace":"global",
-        "type": "timezone.setting",
-        "key":"timezone.site",
-        "value":[
-            ""
-          ],
-        "groupUuid":"-1"
-        }
-        ]
+        {"instanceType": "timezone",
+         "instanceUuid": "",
+         "namespace": "global",
+         "type": "timezone.setting",
+         "key": "timezone.site",
+         "value": [""],
+         "groupUuid": "-1"
+         }
+    ]
 
     # instansiate the dnac class
     dnac = DnaCenter(module)
@@ -228,5 +226,6 @@ def main():
     # process common settings
     dnac.process_common_settings(payload, group_id)
 
+
 if __name__ == "__main__":
-  main()
+    main()

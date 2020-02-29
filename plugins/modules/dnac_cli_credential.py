@@ -175,7 +175,7 @@ def main():
         cli_desc=dict(type='str', required=True),
         cli_comments=dict(type='str', required=False),
         group_name=dict(type='str', default='-1')
-        )
+    )
 
     result = dict(
         changed=False,
@@ -185,16 +185,16 @@ def main():
     module = AnsibleModule(
         argument_spec=module_args,
         supports_check_mode=False
-        )
+    )
 
     #  Build the payload dictionary
     payload = [
-      {"username": module.params['cli_user'],
-       "password": module.params['cli_password'],
-       "enablePassword": module.params['cli_enable_password'],
-       "description": module.params['cli_desc'],
-       "comments": module.params['cli_comments']
-       }
+        {"username": module.params['cli_user'],
+         "password": module.params['cli_password'],
+         "enablePassword": module.params['cli_enable_password'],
+         "description": module.params['cli_desc'],
+         "comments": module.params['cli_comments']
+         }
     ]
 
     # instansiate the dnac class
@@ -220,11 +220,7 @@ def main():
         if setting['username'] == payload[0]['username']:
             if module.params['state'] == 'absent':
                 dnac.api_path = 'api/v1/global-credential'
-                # dnac.api_path='api/v1/global-credential'
-                response = dnac.delete_obj(setting['id'])
-                result['changed'] = True
-                result['msg'] = 'User Deleted.'
-                module.exit_json(**result)
+                dnac.delete_obj(setting['id'])
             elif module.params['state'] == 'update':
                 # call update function
                 payload = payload[0].update({'id': setting['id']})

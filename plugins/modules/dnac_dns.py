@@ -191,7 +191,6 @@ def main():
                            )
 
     #  Define local variables
-    state = module.params['state']
     domain_name = module.params['domain_name']
     primary_dns_server = module.params['primary_dns_server']
     secondary_dns_server = module.params['secondary_dns_server']

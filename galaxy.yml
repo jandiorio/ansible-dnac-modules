@@ -9,7 +9,7 @@ namespace: wwt
 name: ansible_dnac
 
 # The version of the collection. Must be compatible with semantic versioning
-version: 1.0.0
+version: 1.0.1
 
 # The path to the Markdown (.md) readme file. This path is relative to the root of the collection
 readme: README.md
@@ -23,7 +23,7 @@ authors:
 ### OPTIONAL but strongly recommended
 
 # A short summary description of the collection
-description: DNA Center modules and plugins
+description: Collection of Ansible modules and plugins for DNA Center
 
 # Either a single license or a list of licenses for content inside of a collection. Ansible Galaxy currently only
 # accepts L(SPDX,https://spdx.org/licenses/) licenses. This key is mutually exclusive with 'license_file'
@@ -42,7 +42,7 @@ tags: [dnac, wwt, ansible_dnac]
 # collection label 'namespace.name'. The value is a version range
 # L(specifiers,https://python-semanticversion.readthedocs.io/en/latest/#requirement-specification). Multiple version
 # range specifiers can be set and are separated by ','
-dependencies: {}
+dependencies: {requests, geopy, timezonefinder==3.4.2}
 
 # The URL of the originating SCM repository
 repository: https://github.com/wwt/ansible_dnac
@@ -51,10 +51,10 @@ repository: https://github.com/wwt/ansible_dnac
 documentation: ""
 
 # The URL to the homepage of the collection/project
-homepage: ""
+homepage: "http://www.wwt.com/"
 
 # The URL to the collection issue tracker
-issues: ""
+issues: "https://github.com/jandiorio/ansible-dnac-modules/issues"
 
 # Ignored Files
 build_ignore:

@@ -6,3 +6,4 @@ dnac_api_support.xlsx
 scratch
 *.pyc
 *.backup
+hosts.yaml

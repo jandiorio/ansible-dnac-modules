@@ -1,0 +1,19 @@
+---
+- name: Test DNAC Collection
+  hosts: localhost
+  gather_facts: false
+
+  collections:
+    - wwt.ansible_dnac
+
+  tasks:
+    - name: Create a Site
+      dnac_site:
+        host: "{{ dnac.hostname }}"
+        username: "{{ dnac.username }}"
+        password: "{{ dnac.password }}"
+        name: nj-Site
+        site_type: area
+        validate_certs: false
+
+

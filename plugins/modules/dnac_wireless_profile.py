@@ -164,27 +164,30 @@ RETURN = r'''
 
   orig_config:
     description:
-      - hte json payload data of the existing profile if exists
+      - the json payload data of the existing profile if exists
 '''
 
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac import DnaCenter,dnac_argument_spec
+from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac import DnaCenter, dnac_argument_spec
+
 
 def main():
     _profile_exists = False
 
     module_args = dnac_argument_spec
     module_args.update(
-        state=dict(type='str', choices=['absent','present']),
+        state=dict(type='str', choices=['absent', 'present']),
         name=dict(type='str', required=True),
         sites=dict(type='list', required=False),
         ssid_name=dict(type='str', required=False),
-        ssid_type=dict(type='str',required=False, default='Enterprise',
-                        choices=['Guest','Enterprise']),
-        fabric_enabled=dict(type='bool',required=False, default=False),
-        flexconnect=dict(type='bool',required=False, default=False),
-        flexconnect_vlan=dict(type='str',required=False),
+        ssid_type=dict(type='str',
+                       required=False,
+                       default='Enterprise',
+                       choices=['Guest', 'Enterprise']),
+        fabric_enabled=dict(type='bool', required=False, default=False),
+        flexconnect=dict(type='bool', required=False, default=False),
+        flexconnect_vlan=dict(type='str', required=False),
         interface=dict(type='str', required=False)
     )
 
@@ -196,9 +199,9 @@ def main():
         proposed_config='')
 
     module = AnsibleModule(
-        argument_spec = module_args,
-        supports_check_mode = False
-        )
+        argument_spec=module_args,
+        supports_check_mode=False
+    )
 
     # build the required payload data structure
     payload = {
@@ -210,7 +213,7 @@ def main():
     # If ssid information is provided add to the payload
     if module.params['ssid_name'] and module.params['ssid_type']:
         payload['profileDetails'].update(
-            {"ssidDetails":[
+            {"ssidDetails": [
                 {
                     "name": module.params['ssid_name'],
                     "type": module.params['ssid_type'],
@@ -225,17 +228,18 @@ def main():
             )
         #  If Flexconnect is in play, add flexconnect variables
         if module.params['flexconnect']:
-            flexconnect =  {"flexConnect": {
-                                "enableFlexConnect": module.params['flexconnect'],
-                                "localToVlan": module.params['flexconnect_vlan']
-            }}
+            flexconnect = {
+                "flexConnect": {
+                    "enableFlexConnect": module.params['flexconnect'],
+                    "localToVlan": module.params['flexconnect_vlan']
+                }
+            }
         else:
-            flexconnect =  {"flexConnect": {
-                                "enableFlexConnect": module.params['flexconnect'] }}
-
+            flexconnect = {
+                "flexConnect": {
+                    "enableFlexConnect": module.params['flexconnect']}}
 
         payload['profileDetails']['ssidDetails'][0].update(flexconnect)
-
 
     # Instantiate the DnaCenter class object
     dnac = DnaCenter(module)
@@ -247,11 +251,12 @@ def main():
     #  get the SSIDs
     profiles = dnac.get_obj()
 
-    result['orig_config'] = [profile for profile in profiles if profile['profileDetails']['name'] == module.params['name']]
+    result['orig_config'] = [profile for profile in profiles
+                             if profile['profileDetails']['name'] == module.params['name']]
     result['proposed_config'] = payload
 
     if len(profiles) > 0:
-        _profile_names = [ profile['profileDetails']['name'] for profile in profiles ]
+        _profile_names = [profile['profileDetails']['name'] for profile in profiles]
     else:
         _profile_names = []
 
@@ -296,6 +301,7 @@ def main():
     elif module.params['state'] == 'absent' and not _profile_exists:
         result['changed'] = False
         module.exit_json(msg='Wireless Profile Does not exist.  Cannot delete.', **result)
+
 
 if __name__ == "__main__":
     main()

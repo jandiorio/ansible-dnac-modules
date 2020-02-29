@@ -159,15 +159,15 @@ def main():
         all=dict(type='str', required=False, default=True)
     )
 
-    result = dict(
-        changed=False,
-        original_message='',
-        message='')
+    # result = dict(
+    #     changed=False,
+    #     original_message='',
+    #     message='')
 
     module = AnsibleModule(
         argument_spec=module_args,
         supports_check_mode=False
-        )
+    )
 
     # Instantiate the DnaCenter class object
     dnac = DnaCenter(module)
@@ -196,16 +196,16 @@ def main():
     }
 
     dnac.api_path = 'api/v1/archive-config'
-    archive_config_results = dnac.create_obj(payload)
-    if not archive_config_results.get('isError'):
-        result['changed'] = True
-        result['original_message'] = archive_config_results
-        module.exit_json(msg='Device Config Archived Successfully.', **result)
-    elif archive_config_results.get('isError'):
-        result['changed'] = False
-        result['original_message'] = archive_config_results
-        module.fail_json(msg='Failed to Archive Device Configuration!',
-                         **result)
+    dnac.create_obj(payload)
+    # if not archive_config_results.get('isError'):
+    #     result['changed'] = True
+    #     result['original_message'] = archive_config_results
+    #     module.exit_json(msg='Device Config Archived Successfully.', **result)
+    # elif archive_config_results.get('isError'):
+    #     result['changed'] = False
+    #     result['original_message'] = archive_config_results
+    #     module.fail_json(msg='Failed to Archive Device Configuration!',
+    #                      **result)
 
 
 if __name__ == "__main__":

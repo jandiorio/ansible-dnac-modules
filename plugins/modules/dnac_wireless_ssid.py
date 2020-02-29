@@ -211,7 +211,7 @@ def main():
     module = AnsibleModule(
         argument_spec=module_args,
         supports_check_mode=False
-        )
+    )
 
     # build the required payload data structure
     payload = {
@@ -224,7 +224,7 @@ def main():
         "radioPolicy": module.params['radio_policy'],
         "enableBroadcastSSID": module.params['enable_broadcast_ssid'],
         "fastTransition": module.params['fast_transition']
-        }
+    }
 
     # Instantiate the DnaCenter class object
     dnac = DnaCenter(module)

@@ -10,16 +10,17 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 dnac_argument_spec = dict(
-    host = dict(required=True, type='str'),
-    port = dict(required=False, type='str', default='443'),
-    username = dict(required=True, type='str'),
-    password = dict(required=True, type='str',no_log=True),
+    host=dict(required=True, type='str'),
+    port=dict(required=False, type='str', default='443'),
+    username=dict(required=True, type='str'),
+    password=dict(required=True, type='str', no_log=True),
     use_proxy=dict(required=False, type='bool', default=True),
     use_ssl=dict(type='bool', default=True),
     timeout=dict(type='int', default=30),
     validate_certs=dict(type='bool', default=False),
     state=dict(type='str', default='present', choices=['absent', 'present', 'update', 'query'])
-    )
+)
+
 
 class DnaCenter(object):
 
@@ -36,7 +37,6 @@ class DnaCenter(object):
             message='')
         self.login()
 
-
     def __setattr__(self, key, value):
         """
         Control what attributes can be attached to the object to avoid mistypes or invalid variable names.
@@ -45,8 +45,8 @@ class DnaCenter(object):
         :param value:
         :return:
         """
-        if key not in ['api_path', 'username', 'password', 'host', 'session', 'response', 'module','params', \
-                       'cookie','credential_type', 'credential_subtype','credential_name','result']:
+        if key not in ['api_path', 'username', 'password', 'host', 'session', 'response', 'module', 'params',
+                       'cookie', 'credential_type', 'credential_subtype', 'credential_name', 'result']:
             raise AttributeError(key + " : Attribute not permitted")
         else:
             self.__dict__[key] = value
@@ -62,7 +62,7 @@ class DnaCenter(object):
 
         login_url = 'https://' + self.params['host'] + '/api/system/v1/auth/token'
         # issue with 1.3.0.4 update broke the auth URI below - investigating
-        #login_url = 'https://' + self.params['host'] + '/dna/system/api/v1/auth/token'
+        # login_url = 'https://' + self.params['host'] + '/dna/system/api/v1/auth/token'
 
         # create a session object
         self.session = requests.session()
@@ -89,7 +89,7 @@ class DnaCenter(object):
         self.session.headers.update({'X-Auth-Token': self.response.json()['Token']})
 
         # set the content-type
-        self.session.headers.update({'content-type' : 'application/json'})
+        self.session.headers.update({'content-type': 'application/json'})
 
         # provide session object to functions
         return self.session
@@ -122,7 +122,7 @@ class DnaCenter(object):
             self.result['changed'] = True
             self.result['original_message'] = response
             self.module.exit_json(msg='Task Completed successfully.', **self.result)
-        elif response.get('status')=="FAILURE":
+        elif response.get('status') == "FAILURE":
             self.result['changed'] = False
             self.result['original_message'] = response
             self.module.fail_json(msg='Task Failed to Complete!', **self.result)
@@ -161,8 +161,7 @@ class DnaCenter(object):
 
         return response
 
-
-    #generalized get object function
+    # generalized get object function
     def get_obj(self):
         """
         Retrieve information from the DNA Center Controller.
@@ -177,7 +176,7 @@ class DnaCenter(object):
             try:
                 r = response.json()
                 return r
-            except Exception as e:
+            except Exception:
                 r = []
                 return r
             # if response.text.find('No_.*found'):
@@ -197,7 +196,6 @@ class DnaCenter(object):
             self.result['original_message'] = response.text
             self.module.fail_json(msg='Failed to get object!', **self.result)
 
-
     # generalized create call
     def create_obj(self, payload):
         """
@@ -210,7 +208,7 @@ class DnaCenter(object):
         try:
             payload = json.dumps(payload)
             # self.module.fail_json(msg=payload)
-        except Exception as e:
+        except Exception:
             self.module.fail_json(msg='failed to convert payload to json.  invalid json')
         url = "https://" + self.params['host'] + '/' + self.api_path.rstrip('/')
 
@@ -221,9 +219,9 @@ class DnaCenter(object):
                 r = response.json()
                 try:
                     if url.find('intent') >= 0:
-                        task_response = self.intent_task_checker(r['executionId'])
+                        self.intent_task_checker(r['executionId'])
                     else:
-                        task_response = self.task_checker(r['response']['taskId'])
+                        self.task_checker(r['response']['taskId'])
 
                 except Exception as e:
                     self.result['original_message'] = e
@@ -235,7 +233,6 @@ class DnaCenter(object):
         else:
             self.result['changed'] = True
             self.module.exit_json(msg='In check_mode.  Changes would be required.', **self.result)
-
 
     # generalized delete call
     def delete_obj(self, payload):
@@ -251,9 +248,9 @@ class DnaCenter(object):
                 r = response.json()
                 # if self.api_path.find('dna'):
                 if url.find('intent') >= 0:
-                    task_response = self.intent_task_checker(r['executionId'])
+                    self.intent_task_checker(r['executionId'])
                 else:
-                    task_response = self.task_checker(r['response']['taskId'])
+                    self.task_checker(r['response']['taskId'])
             else:
                 self.result['changed'] = False
                 self.result['original_message'] = response.text
@@ -261,7 +258,6 @@ class DnaCenter(object):
         else:
             self.result['changed'] = True
             self.module.exit_json(msg='In check_mode.  Changes would be required.', **self.result)
-
 
     # generalized update call
     def update_obj(self, payload):
@@ -271,22 +267,20 @@ class DnaCenter(object):
         if response.status_code in [200, 201, 202]:
             r = response.json()
             if url.find('intent') >= 0:
-                task_response = self.intent_task_checker(r['executionId'])
+                self.intent_task_checker(r['executionId'])
             else:
-                task_response = self.task_checker(r['response']['taskId'])
+                self.task_checker(r['response']['taskId'])
 
         else:
             self.result['changed'] = False
             self.result['original_message'] = response.text
             self.module.fail_json(msg='Failed to update object!', **self.result)
 
-
     # Group ID lookup
     def get_group_id(self, group_name):
 
-        if (self.module.params['group_name'] == '-1' or
-            self.module.params['group_name'].lower() == 'global'):
-                return '-1'
+        if (self.module.params['group_name'] == '-1' or self.module.params['group_name'].lower() == 'global'):
+            return '-1'
         else:
             self.api_path = 'api/v1/group'
             groups = self.get_obj()
@@ -294,7 +288,6 @@ class DnaCenter(object):
             if len(group_ids) == 1:
                 group_id = group_ids[0]
                 return group_id
-
 
     def parse_geo(self, address):
         """
@@ -305,7 +298,7 @@ class DnaCenter(object):
         :return: attributes dictionary
         """
 
-        geolocator = Nominatim(user_agent='dnac_ansible',timeout=30)
+        geolocator = Nominatim(user_agent='dnac_ansible', timeout=30)
         try:
             location = geolocator.geocode(address)
         except Exception as e:
@@ -313,15 +306,14 @@ class DnaCenter(object):
             sys.exit(0)
 
         location_parts = location.address.split(',')
-        country = location_parts[len(location_parts) -1]
+        country = location_parts[len(location_parts) - 1]
         attributes = {'address': location.address,
-                      'country':country,
-                      'latitude':location.latitude,
-                      'longitude':location.longitude,
-                      'type':'building'
+                      'country': country,
+                      'latitude': location.latitude,
+                      'longitude': location.longitude,
+                      'type': 'building'
                       }
         return attributes
-
 
     def timezone_lookup(self, address):
         """
@@ -360,7 +352,7 @@ class DnaCenter(object):
 
         if state == 'present':
             if setting_count == 1:
-            # compare previous to proposed
+                # compare previous to proposed
                 if settings[0]['value'] != payload[0]['value']:
                     self.create_obj(payload)
                 else:
@@ -372,10 +364,13 @@ class DnaCenter(object):
                 self.create_obj(payload)
 
         elif state == 'absent':
-            payload[0].update({'value':[]})
+            payload[0].update({'value': []})
             self.create_obj(payload)
+
+
 def main():
     pass
+
 
 if __name__ == '__main__':
     main()

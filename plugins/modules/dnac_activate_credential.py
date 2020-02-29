@@ -31,20 +31,19 @@ def main():
         credential_name=dict(type='str', required=True),
         credential_type=dict(type='str', default='SNMPV2_WRITE_COMMUNITY',
                              choices=['SNMPV2_READ_COMMUNITY',
-                                      'SNMPV2_WRITE_COMMUNITY',
-                                      'CLI']),
+                                      'SNMPV2_WRITE_COMMUNITY', 'CLI']),
         group_name=dict(type='str', default='Global', required=False)
-        )
+    )
 
-    result = dict(
-        changed=False,
-        original_message='',
-        message='')
+    # result = dict(
+    #     changed=False,
+    #     original_message='',
+    #     message='')
 
     module = AnsibleModule(
         argument_spec=module_args,
         supports_check_mode=False
-        )
+    )
 
     # instantiate dnac object
     dnac = DnaCenter(module)

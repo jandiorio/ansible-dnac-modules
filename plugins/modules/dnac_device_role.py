@@ -160,7 +160,11 @@ def main():
     module_args.update(
         device_name=dict(type='str', required=False),
         device_mgmt_ip=dict(type='str', required=False),
-        device_role=dict(type='str', required=True, choices=['ACCESS', 'DISTRIBUTION', 'CORE', 'BORDER ROUTER', 'UNKOWN'])
+        device_role=dict(
+            type='str', required=True, choices=[
+                'ACCESS', 'DISTRIBUTION', 'CORE', 'BORDER ROUTER', 'UNKOWN'
+            ]
+        )
     )
 
     result = dict(
@@ -171,7 +175,7 @@ def main():
     module = AnsibleModule(
         argument_spec=module_args,
         supports_check_mode=False
-        )
+    )
 
     # Instantiate the DnaCenter class object
     dnac = DnaCenter(module)

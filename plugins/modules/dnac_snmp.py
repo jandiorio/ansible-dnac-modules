@@ -8,8 +8,8 @@ __metaclass__ = type
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
-    'status' : ['development'],
-    'supported_by' : 'jandiorio'
+    'status': ['development'],
+    'supported_by': 'jandiorio'
 }
 
 
@@ -149,7 +149,7 @@ proprosed:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac import DnaCenter,dnac_argument_spec
+from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac import DnaCenter, dnac_argument_spec
 
 # -----------------------------------------------
 #  define static required variales
@@ -158,38 +158,38 @@ from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac
 #  main
 # -----------------------------------------------
 
+
 def main():
     module_args = dnac_argument_spec
     module_args.update(
-        group_name=dict(type='str',default='-1', required=False),
+        group_name=dict(type='str', default='-1', required=False),
         snmp_servers=dict(type='list', required=False),
-        enable_dnac=dict(type='bool',required=False, default=True)
-        )
+        enable_dnac=dict(type='bool', required=False, default=True)
+    )
 
     module = AnsibleModule(
-        argument_spec = module_args,
-        supports_check_mode = True
-        )
+        argument_spec=module_args,
+        supports_check_mode=True
+    )
+
     #  Set Local Variables
-    state = module.params['state']
     snmp_servers = module.params['snmp_servers']
     group_name = module.params['group_name']
     enable_dnac = module.params['enable_dnac']
 
     #  Build the payload dictionary
     payload = [
-        {"instanceType":"snmp",
-        "namespace":"global",
-        "type": "snmp.setting",
-        "key":"snmp.trap.receiver",
-        "value": [
-          {
-            "ipAddresses": snmp_servers,
-            "configureDnacIP": enable_dnac
-          }
-        ],
-        "groupUuid":"-1",
-        }
+        {"instanceType": "snmp",
+         "namespace": "global",
+         "type": "snmp.setting",
+         "key": "snmp.trap.receiver",
+         "value": [{
+             "ipAddresses": snmp_servers,
+             "configureDnacIP": enable_dnac
+         }
+         ],
+         "groupUuid": "-1",
+         }
     ]
 
     # instansiate the dnac class
@@ -204,5 +204,6 @@ def main():
     # Process Setting Changes
     dnac.process_common_settings(payload, group_id)
 
+
 if __name__ == "__main__":
-  main()
+    main()

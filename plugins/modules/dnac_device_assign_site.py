@@ -227,8 +227,8 @@ def main():
         if not group_assignment['response'][device_id][0]:
             module.fail_json(msg='Device is not assigned to a group.  Cannot remove assignment')
         elif group_assignment['response'][device_id][0]['id'] != group_id:
-            module.fail_json(msg='Device is not assigned to the group provided.  Device is currently in group:' +
-                             group_assignment['response'][device_id][0]['groupNameHierarchy'])
+            module.fail_json(msg='Device is not assigned to the group provided. \
+                Device is currently in group:' + group_assignment['response'][device_id][0]['groupNameHierarchy'])
         else:
             dnac.delete_obj(device_id)
     elif module.params['state'] == 'update':

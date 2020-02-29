@@ -188,7 +188,12 @@ def main():
         discovery_name=dict(alias='name', type='str', required=True),
         discovery_type=dict(type='str', required=True, choices=['CDP', 'Range']),
         discovery_cdp_level=dict(alias='cdp_level', type='str', required=False),
-        discovery_preferred_ip_method=dict(alias='preferred_ip_method', type='str', required=False, default='None', choices=['None', 'UseLoopBack']),
+        discovery_preferred_ip_method=dict(
+            alias='preferred_ip_method',
+            type='str', required=False,
+            default='None',
+            choices=['None', 'UseLoopBack']
+        ),
         discovery_ip_filter_list=dict(type='str', required=False),
         discovery_ip_addr_list=dict(type='str', required=True),
         global_cli_cred=dict(type='str', required=True),
@@ -205,7 +210,7 @@ def main():
     module = AnsibleModule(
         argument_spec=module_args,
         supports_check_mode=False
-        )
+    )
 
     # Instantiate the DnaCenter class object
     dnac = DnaCenter(module)
@@ -243,7 +248,7 @@ def main():
         "netconfPort": module.params['netconf_port'],
         "rediscovery": module.params['rediscovery']
 
-        }
+    }
 
     '''
     {
@@ -336,7 +341,8 @@ def main():
         dnac.create_obj(payload)
 
     elif module.params['state'] == 'absent' and _discovery_exists:
-        _discovery_id = [discovery['id'] for discovery in discoveries['response'] if discovery['name'] == module.params['discovery_name']]
+        _discovery_id = [discovery['id'] for discovery in discoveries['response']
+                         if discovery['name'] == module.params['discovery_name']]
         dnac.delete_obj(_discovery_id[0])
 
     elif module.params['state'] == 'absent' and not _discovery_exists:

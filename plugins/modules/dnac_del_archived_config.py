@@ -143,15 +143,16 @@ from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac
 
 def main():
 
-    result = dict(
-        changed=False,
-        original_message='',
-        message='')
+    # result = dict(
+    #     changed=False,
+    #     original_message='',
+    #     message='')
 
+    module_args = dnac_argument_spec
     module = AnsibleModule(
         argument_spec=module_args,
         supports_check_mode=False
-        )
+    )
 
     # Instantiate the DnaCenter class object
     dnac = DnaCenter(module)
@@ -169,16 +170,8 @@ def main():
     # delete the associated archives
 
     dnac.api_path = 'api/v1/archive-config/network-device'
-    del_archive_config_results = dnac.delete_obj(device_id)
+    dnac.delete_obj(device_id)
 
-    if not del_archive_config_results.get('isError'):
-        result['changed'] = True
-        result['original_message'] = del_archive_config_results
-        module.exit_json(msg='Device Config Archived Deleted Successfully.', **result)
-    elif device_role_results.get('isError'):
-        result['changed'] = False
-        result['original_message'] = del_archive_config_results
-        module.fail_json(msg='Failed to Delete Device Archived Configurations!', **result)
 
 if __name__ == "__main__":
-  main()
+    main()

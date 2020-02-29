@@ -5,8 +5,8 @@
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.0',
-    'status' : ['development'],
-    'supported_by' : 'jandiorio'
+    'status': ['development'],
+    'supported_by': 'jandiorio'
 }
 
 
@@ -120,7 +120,7 @@ RETURN = r'''
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac import DnaCenter,dnac_argument_spec
+from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac import DnaCenter, dnac_argument_spec
 
 # -----------------------------------------------
 #  define static required variales
@@ -129,15 +129,19 @@ from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac
 #  main
 # -----------------------------------------------
 
+
 def main():
     _credential_exists = False
     module_args = dnac_argument_spec
     module_args.update(
-        credential_type=dict(type='str', default='SNMPV2_WRITE_COMMUNITY',choices=['SNMPV2_READ_COMMUNITY','SNMPV2_WRITE_COMMUNITY']),
+        credential_type=dict(
+            type='str', default='SNMPV2_WRITE_COMMUNITY',
+            choices=['SNMPV2_READ_COMMUNITY', 'SNMPV2_WRITE_COMMUNITY']
+        ),
         snmp_community=dict(type='str', required=True),
         snmp_description=dict(type='str', required=True),
         snmp_comments=dict(type='str', required=True)
-        )
+    )
 
     result = dict(
         changed=False,
@@ -145,9 +149,9 @@ def main():
         message='')
 
     module = AnsibleModule(
-        argument_spec = module_args,
-        supports_check_mode = False
-        )
+        argument_spec=module_args,
+        supports_check_mode=False
+    )
     if module.params['credential_type'] == 'SNMPV2_WRITE_COMMUNITY':
         _community_key_name = 'writeCommunity'
         _url_suffix = 'snmpv2-write-community'
@@ -157,10 +161,10 @@ def main():
 
     #  Build the payload dictionary
     payload = [
-      {_community_key_name: module.params['snmp_community'],
-        "description": module.params['snmp_description'],
-        "comments": module.params['snmp_comments']
-      }
+        {_community_key_name: module.params['snmp_community'],
+         "description": module.params['snmp_description'],
+         "comments": module.params['snmp_comments']
+         }
     ]
 
     # instansiate the dnac class
@@ -171,7 +175,9 @@ def main():
     settings = dnac.get_obj()
 
 #    _creds = [ cred['description'] for cred in settings['response']]
-    _creds = [(cred['description'], cred['id']) for cred in settings['response'] if cred['description'] == module.params['snmp_description']]
+    _creds = [(cred['description'], cred['id'])
+              for cred in settings['response']
+              if cred['description'] == module.params['snmp_description']]
 
     if len(_creds) > 1:
         module.fail_json(msg="Multiple matching entries...invalid.", **result)
@@ -209,6 +215,5 @@ def main():
             module.fail_json(msg="Credential doesn't exist.  Cannot delete or update.", **result)
 
 
-
 if __name__ == "__main__":
-  main()
+    main()

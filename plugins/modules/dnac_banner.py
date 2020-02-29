@@ -183,27 +183,26 @@ def main():
         banner_message=dict(type='str', default='', required=False),
         group_name=dict(type='str', default='-1'),
         retain_banner=dict(type='bool', default=True)
-        )
+    )
 
     module = AnsibleModule(
         argument_spec=module_args,
         supports_check_mode=True
-        )
+    )
 
     #  Set Local Variables
     banner_message = module.params['banner_message']
     retain_banner = module.params['retain_banner']
     group_name = module.params['group_name']
-    state = module.params['state']
+    # state = module.params['state']
 
     #  Build the payload dictionary
     payload = [{"instanceType": "banner",
                 "namespace": "global",
                 "type": "banner.setting",
                 "key": "device.banner",
-                "value": [{
-                             "bannerMessage": banner_message,
-                             "retainExistingBanner": retain_banner
+                "value": [{"bannerMessage": banner_message,
+                           "retainExistingBanner": retain_banner
                            }],
                 "groupUuid": "-1"
                 }]

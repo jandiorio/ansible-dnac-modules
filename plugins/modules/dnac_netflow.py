@@ -8,8 +8,8 @@ __metaclass__ = type
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.0',
-    'status' : ['development'],
-    'supported_by' : 'jandiorio'
+    'status': ['development'],
+    'supported_by': 'jandiorio'
 }
 
 DOCUMENTATION = r'''
@@ -150,7 +150,7 @@ proprosed:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac import DnaCenter,dnac_argument_spec
+from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac import DnaCenter, dnac_argument_spec
 
 # -----------------------------------------------
 #  define static required variales
@@ -159,38 +159,39 @@ from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac
 #  main
 # -----------------------------------------------
 
+
 def main():
     module_args = dnac_argument_spec
     module_args.update(
         netflow_collector=dict(type='str', required=False),
         netflow_port=dict(type='str', required=False),
-        group_name=dict(type='str',default='-1')
-        )
+        group_name=dict(type='str', default='-1')
+    )
 
     module = AnsibleModule(
-        argument_spec = module_args,
-        supports_check_mode = True
-        )
+        argument_spec=module_args,
+        supports_check_mode=True
+    )
 
     #  Define local variables
-    state = module.params['state']
     group_name = module.params['group_name']
     netflow_collector = module.params['netflow_collector']
     netflow_port = module.params['netflow_port']
 
     #  Build the payload dictionary
     payload = [
-        {"instanceType":"netflow",
-        "namespace":"global",
-        "type": "netflow.setting",
-        "key":"netflow.collector",
-        "value":[{
-                 "ipAddress" : netflow_collector,
-                 "port" : netflow_port
-                 }],
-        "groupUuid":"-1"
-        }
-        ]
+        {"instanceType": "netflow",
+         "namespace": "global",
+         "type": "netflow.setting",
+         "key": "netflow.collector",
+         "value": [
+             {"ipAddress": netflow_collector,
+              "port": netflow_port
+              }
+         ],
+         "groupUuid": "-1"
+         }
+    ]
 
     # instansiate the dnac class
     dnac = DnaCenter(module)
@@ -203,5 +204,6 @@ def main():
 
     dnac.process_common_settings(payload, group_id)
 
+
 if __name__ == "__main__":
-  main()
+    main()

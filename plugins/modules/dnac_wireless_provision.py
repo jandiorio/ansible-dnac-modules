@@ -182,40 +182,32 @@ def main():
         reprovision=dict(type='bool', required=False, default=False)
     )
 
-    result = dict(
-        changed=False,
-        original_message='',
-        message='')
-
     module = AnsibleModule(
-        argument_spec = module_args,
-        supports_check_mode = False
-        )
+        argument_spec=module_args,
+        supports_check_mode=False
+    )
 
     # build the required payload data structure
     payload = [
-    {
-        "deviceName": module.params['name'],
-        "site": module.params['site'],
-        "managedAPLocations": module.params['managed_ap_locations']
-
-        }
+        {"deviceName": module.params['name'],
+         "site": module.params['site'],
+         "managedAPLocations": module.params['managed_ap_locations']
+         }
     ]
 
     if module.params['interface']:
         payload[0].update(
             {"dynamicInterfaces": [
-                    {
-                        "interfaceIPAddress": module.params['interface_ip'],
-                        "interfaceNetmaskInCIDR": module.params['interface_prefix_length'],
-                        "interfaceGateway": module.params['interface_gateway'],
-                        "lagOrPortNumber":module.params['lag_or_port_number'],
-                        "vlanId": module.params['vlan'],
-                        "interfaceName": module.params['interface'],
-                    }
-                   ]
-            }
-            )
+                {"interfaceIPAddress": module.params['interface_ip'],
+                 "interfaceNetmaskInCIDR": module.params['interface_prefix_length'],
+                 "interfaceGateway": module.params['interface_gateway'],
+                 "lagOrPortNumber":module.params['lag_or_port_number'],
+                 "vlanId": module.params['vlan'],
+                 "interfaceName": module.params['interface'],
+                 }
+                ]
+             }
+        )
 
     # Instantiate the DnaCenter class object
     dnac = DnaCenter(module)

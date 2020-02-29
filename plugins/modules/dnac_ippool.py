@@ -140,7 +140,8 @@ RETURN = r'''
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac import DnaCenter,dnac_argument_spec
+from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac import DnaCenter, dnac_argument_spec
+
 
 def main():
     _ip_pool_exists = False
@@ -150,11 +151,11 @@ def main():
         # removed api_path local variable
         state=dict(type='str', default='present', choices=['absent', 'present', 'update']),
         ip_pool_name=dict(type='str', required=True),
-        ip_pool_subnet=dict(type='str',required=True),
+        ip_pool_subnet=dict(type='str', required=True),
         ip_pool_prefix_len=dict(type='str', default='/8'),
         ip_pool_gateway=dict(type='str', required=True),
         ip_pool_dhcp_servers=dict(type='list'),
-        ip_pool_dns_servers = dict(type='list'),
+        ip_pool_dns_servers=dict(type='list'),
         ip_pool_overlapping=dict(type='bool', default=False)
     )
 
@@ -164,9 +165,9 @@ def main():
         message='')
 
     module = AnsibleModule(
-        argument_spec = module_args,
-        supports_check_mode = False
-        )
+        argument_spec=module_args,
+        supports_check_mode=False
+    )
 
     # build the required payload data structure
     payload = {
@@ -175,8 +176,8 @@ def main():
         "gateways": module.params['ip_pool_gateway'].split(','),
         "dhcpServerIps": module.params['ip_pool_dhcp_servers'],
         "dnsServerIps": module.params['ip_pool_dns_servers'],
-        "overlapping":  module.params['ip_pool_overlapping']
-        }
+        "overlapping": module.params['ip_pool_overlapping']
+    }
 
     # Instantiate the DnaCenter class object
     dnac = DnaCenter(module)
@@ -201,11 +202,13 @@ def main():
     elif module.params['state'] == 'present' and not _ip_pool_exists:
         dnac.create_obj(payload)
     elif module.params['state'] == 'absent' and _ip_pool_exists:
-        _ip_pool_id = [pool['id'] for pool in ip_pools['response'] if pool['ipPoolName'] == module.params['ip_pool_name']]
+        _ip_pool_id = [pool['id'] for pool in ip_pools['response']
+                       if pool['ipPoolName'] == module.params['ip_pool_name']]
         dnac.delete_obj(_ip_pool_id[0])
     elif module.params['state'] == 'absent' and not _ip_pool_exists:
         result['changed'] = False
         module.exit_json(msg='Ip pool Does not exist.  Cannot delete.', **result)
 
+
 if __name__ == "__main__":
-  main()
+    main()

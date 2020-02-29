@@ -8,8 +8,8 @@ __metaclass__ = type
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.0',
-    'status' : ['development'],
-    'supported_by' : 'jandiorio'
+    'status': ['development'],
+    'supported_by': 'jandiorio'
 }
 
 DOCUMENTATION = r'''
@@ -146,7 +146,7 @@ proprosed:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac import DnaCenter,dnac_argument_spec
+from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac import DnaCenter, dnac_argument_spec
 
 # -----------------------------------------------
 #  define static required variales
@@ -155,32 +155,33 @@ from ansible_collections.wwt.ansible_dnac.plugins.module_utils.network.dnac.dnac
 #  main
 # -----------------------------------------------
 
+
 def main():
-    _setting_exists = False
     module_args = dnac_argument_spec
     module_args.update(
-        ntp_servers=dict(type='list',required=False),
-        group_name=dict(type='str',default='-1')
-        )
+        ntp_servers=dict(type='list', required=False),
+        group_name=dict(type='str', default='-1')
+    )
 
     module = AnsibleModule(
-        argument_spec = module_args,
-        supports_check_mode = True
-        )
+        argument_spec=module_args,
+        supports_check_mode=True
+    )
     #  Define Static Variables
     group_name = module.params['group_name']
     ntp_servers = module.params['ntp_servers']
 
     #  Build the payload dictionary
     payload = [
-        {"instanceType":"ip",
-        "namespace":"global",
-        "type": "ip.address",
-        "key":"ntp.server",
-        "value": ntp_servers,
-        "groupUuid":"-1"
-        }
-        ]
+        {"instanceType": "ip",
+         "namespace": "global",
+         "type": "ip.address",
+         "key": "ntp.server",
+         "value": ntp_servers,
+         "groupUuid": "-1"
+         }
+    ]
+
     # instansiate the dnac class
     dnac = DnaCenter(module)
 
@@ -193,5 +194,6 @@ def main():
     # Process Setting Changes
     dnac.process_common_settings(payload, group_id)
 
+
 if __name__ == "__main__":
-  main()
+    main()

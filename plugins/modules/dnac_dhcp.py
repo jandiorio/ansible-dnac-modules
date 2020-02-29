@@ -169,15 +169,15 @@ def main():
     module_args.update(
         dhcp_servers=dict(type='list', required=False),
         group_name=dict(type='str', default='-1')
-        )
+    )
 
     module = AnsibleModule(
         argument_spec=module_args,
         supports_check_mode=True
-        )
+    )
 
     #  Define Local Variables
-    state = module.params['state']
+
     dhcp_servers = module.params['dhcp_servers']
     group_name = module.params['group_name']
 
@@ -189,8 +189,8 @@ def main():
          "key": "dhcp.server",
          "value": dhcp_servers,
          "groupUuid": "-1"
-        }
-        ]
+         }
+    ]
 
     # instansiate the dnac class
     dnac = DnaCenter(module)
