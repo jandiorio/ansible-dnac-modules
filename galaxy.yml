@@ -45,7 +45,7 @@ tags: [dnac, wwt, ansible_dnac]
 dependencies: {}
 
 # The URL of the originating SCM repository
-repository: https://github.com/wwt/ansible_dnac
+repository: https://github.com/jandiorio/ansible-dnac-modules/tree/v1.1.1
 
 # The URL to any online docs
 documentation: ""
