@@ -7,3 +7,5 @@ scratch
 *.pyc
 *.backup
 hosts.yaml
+dnac_api_support.xlsx
+.vscode/settings.json
