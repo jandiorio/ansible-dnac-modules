@@ -72,35 +72,40 @@ This collection also includes an inventory plugin enabling the use of DNA Center
    [inventory]
    enable_plugins =  wwt.ansible_dnac.dna_center
    ```
+
 4. Validate it works
+
    ```shell
    ansible-inventory -i plugins/inventory/ --graph --ask-vault-pass
    ```
 
+   **Example output:**
+
    ```shell
-   @all:
-     |--@barcelona:
-     |--@demo_environment:
-     |  |--@data_center_1:
-     |  |  |--DC1-Border-INET.campus.local
-     |  |  |--DC1-Border-MPLS.campus.local
-     |  |  |--csr-atc-integration.campus.local
-     |  |  |--dc1-nexus-7702.campus.local
-     |  |--@data_center_2:
-     |--@fira:
-     |--@tech_campus:
-     |  |--@bldg_56:
-     |  |  |--@dnac:
-     |  |  |  |--dc1-9300-a.campus.local
-     |  |  |  |--dc1-9300-b.campus.local
-     |  |  |  |--dc1-9500-a.campus.local
-     |  |  |  |--prod-9800wlc-01.campus.local
-     |--@the_cloud:
-     |  |--@aws:
-     |  |  |--FNH-HOSP-0BMT-WLC1A.us-east-2.compute.internal
-     |--@ungrouped:
-   /development/wwt/ansible_dnac #
+    @all:
+      |--@barcelona:
+      |--@demo_environment:
+      |  |--@data_center_1:
+      |  |  |--DC1-Border-INET.campus.local
+      |  |  |--DC1-Border-MPLS.campus.local
+      |  |  |--csr-atc-integration.campus.local
+      |  |  |--dc1-nexus-7702.campus.local
+      |  |--@data_center_2:
+      |--@fira:
+      |--@tech_campus:
+      |  |--@bldg_56:
+      |  |  |--@dnac:
+      |  |  |  |--dc1-9300-a.campus.local
+      |  |  |  |--dc1-9300-b.campus.local
+      |  |  |  |--dc1-9500-a.campus.local
+      |  |  |  |--prod-9800wlc-01.campus.local
+      |--@the_cloud:
+      |  |--@aws:
+      |  |  |--FNH-HOSP-0BMT-WLC1A.us-east-2.compute.internal
+      |--@ungrouped:
+    /development/wwt/ansible_dnac #
    ```
+
 ## Geo Lookup Plugin
 
 This collection includes a lookup plugin which performs a resolution of the location provided to return the latitude and longitude.  When adding buildings in DNAC, an address is required as well as the lat/long of that address.  In the UI this resolution is performed for you.  This plugin provides that functionality in this collection.
