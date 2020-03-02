@@ -30,7 +30,7 @@ RETURN = """
 """
 
 from ansible.plugins.lookup import LookupBase
-from ansible.errors import AnsibleError
+from ansible.errors import AnsibleError, AnsibleParserError
 
 try:
     from geopy.geocoders import Nominatim
@@ -40,19 +40,19 @@ except ImportError as e:
 
 class LookupModule(LookupBase):
 
-    def run(self, address , variables, **kwargs):
+    def run(self, address, variables, **kwargs):
 
         ret = []
 
-        geolocator = Nominatim(user_agent='dnac_ansible',timeout=30)
+        geolocator = Nominatim(user_agent='dnac_ansible', timeout=30)
         try:
             location = geolocator.geocode(address)
         except Exception as e:
             print(e)
             raise AnsibleParserError("Could not resolve address to lat/long:  {}".format(e))
 
-        if location == None:
+        if location is None:
             raise AnsibleError("Lookup was unable to resolve the address provided using geopy:  {}".format(address))
         else:
-            ret = [{ 'latitude' : location.latitude, 'longitude' : location.longitude}]
+            ret = [{'latitude': location.latitude, 'longitude': location.longitude}]
         return ret
