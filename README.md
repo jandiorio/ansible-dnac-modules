@@ -13,15 +13,17 @@ This repository is featured on the Cisco DevNet Code Exchange.
 
 ### Content
 
-The webinar below was hosted by Redhat and delivered by Jeff Andiorio of World Wide Technology on 8/7/2018.
+* The webinar below was hosted by Redhat and delivered by Jeff Andiorio of World Wide Technology on 8/7/2018.
 
-[WWT / Redhat Ansible Webinar](https://www.ansible.com/resources/webinars-training/lab-automation-by-wwt-with-ansible-tower-and-cisco-dna-center)
+   [WWT / Redhat Ansible Webinar](https://www.ansible.com/resources/webinars-training/lab-automation-by-wwt-with-ansible-tower-and-cisco-dna-center)
 
-AnsibleFest 2019 Presentation
+* AnsibleFest 2019 Presentation
 
-[DO I CHOOSE ANSIBLE, DNA CENTER OR BOTH?](https://www.ansible.com/do-i-choose-ansible-dna-center-or-both)
+   [DO I CHOOSE ANSIBLE, DNA CENTER OR BOTH?](https://www.ansible.com/do-i-choose-ansible-dna-center-or-both)
 
-Additional slides providing an overview of the modules can be found here:  [Ansible DNA Center Modules Overview](https://www.slideshare.net/secret/1l5xe5ORzTN3Uv)
+* Additional slides providing an overview of the modules can be found here:
+
+   [Ansible DNA Center Modules Overview](https://www.slideshare.net/secret/1l5xe5ORzTN3Uv)
 
 ### Included Modules
 
@@ -130,6 +132,7 @@ Below is an example task using the `geo` plugin.
   loop: "{{ sites }}"
   when:  item.site_type == 'building'
 ```
+
 > **NOTE:** The `geo` lookup plugin is completely optional.  Alternatively, you could manually resolve the lat/long and include them in the task.  See the `dnac_site` module documentation for more information.
 
 ## Requirements
