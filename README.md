@@ -49,7 +49,85 @@ The documentation can be viewed using  `ansible-doc` and will provide all of the
 - `dnac_wireless_provision`
 - `dnac_wireless_profile`
 
-### Requirements
+## Inventory Plugin
+
+This collection also includes an inventory plugin enabling the use of DNA Center as the source of truth for inventory.
+
+1. Install the collection
+   ```shell
+   ansible-galaxy install wwt.ansible.dnac
+   ```
+2. Configure the plugin by editing the `dna_center.yml` plugin configuration file
+   ```yaml
+   plugin: dna_center
+   host: <your_dna_center>
+   validate_certs: <true or false>
+   use_dnac_mgmt_int: <true or false>
+   username: <username>
+   password: <vaulted password>
+   ```
+3. Enable the plugin by editing `ansible.cfg`
+
+   ```ini
+   [inventory]
+   enable_plugins =  wwt.ansible_dnac.dna_center
+   ```
+4. Validate it works
+   ```shell
+   ansible-inventory -i plugins/inventory/ --graph --ask-vault-pass
+   ```
+
+   ```shell
+   @all:
+     |--@barcelona:
+     |--@demo_environment:
+     |  |--@data_center_1:
+     |  |  |--DC1-Border-INET.campus.local
+     |  |  |--DC1-Border-MPLS.campus.local
+     |  |  |--csr-atc-integration.campus.local
+     |  |  |--dc1-nexus-7702.campus.local
+     |  |--@data_center_2:
+     |--@fira:
+     |--@tech_campus:
+     |  |--@bldg_56:
+     |  |  |--@dnac:
+     |  |  |  |--dc1-9300-a.campus.local
+     |  |  |  |--dc1-9300-b.campus.local
+     |  |  |  |--dc1-9500-a.campus.local
+     |  |  |  |--prod-9800wlc-01.campus.local
+     |--@the_cloud:
+     |  |--@aws:
+     |  |  |--FNH-HOSP-0BMT-WLC1A.us-east-2.compute.internal
+     |--@ungrouped:
+   /development/wwt/ansible_dnac #
+   ```
+## Geo Lookup Plugin
+
+This collection includes a lookup plugin which performs a resolution of the location provided to return the latitude and longitude.  When adding buildings in DNAC, an address is required as well as the lat/long of that address.  In the UI this resolution is performed for you.  This plugin provides that functionality in this collection.
+
+Below is an example task using the `geo` plugin.
+
+```yaml
+# DNA Center Create Buildings
+- name: create buildings
+  dnac_site:
+    host: "{{ inventory_hostname }}"
+    port: '443'
+    username: "{{ username }}"
+    password: "{{ password }}"
+    state: "{{ desired_state }}"
+    name: "{{ item.name }}"
+    site_type: "{{ item.site_type }}"
+    parent_name: "{{ item.parent_name }}"
+    address: "{{ item.building_address }}"
+    latitude: "{{ lookup('wwt.ansible_dnac.geo',item.building_address).latitude }}"
+    longitude: "{{ lookup('wwt.ansible_dnac.geo',item.building_address).longitude }}"
+  loop: "{{ sites }}"
+  when:  item.site_type == 'building'
+```
+> **NOTE:** The `geo` lookup plugin is completely optional.  Alternatively, you could manually resolve the lat/long and include them in the task.  See the `dnac_site` module documentation for more information.
+
+## Requirements
 
 Ansible version 2.9 or later is required for installation using Ansible Collections.
 
