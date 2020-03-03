@@ -59,7 +59,8 @@ This collection also includes an inventory plugin enabling the use of DNA Center
    ```shell
    ansible-galaxy install wwt.ansible.dnac
    ```
-2. Configure the plugin by editing the `dna_center.yml` plugin configuration file
+2. Configure the plugin by creating a file named `dna_center.yml`.  This is the plugin configuration file and I usually save it in a directory named `inventory`.
+
    ```yaml
    plugin: dna_center
    host: <your_dna_center>
@@ -68,6 +69,7 @@ This collection also includes an inventory plugin enabling the use of DNA Center
    username: <username>
    password: <vaulted password>
    ```
+
 3. Enable the plugin by editing `ansible.cfg`
 
    ```ini
@@ -78,7 +80,7 @@ This collection also includes an inventory plugin enabling the use of DNA Center
 4. Validate it works
 
    ```shell
-   ansible-inventory -i plugins/inventory/ --graph --ask-vault-pass
+   ansible-inventory -i <path_to_dna_center.yaml> --graph --ask-vault-pass
    ```
 
    **Example output:**

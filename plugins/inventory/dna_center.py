@@ -8,7 +8,7 @@ from ansible.errors import AnsibleError, AnsibleParserError
 from ansible.plugins.inventory import BaseInventoryPlugin
 
 DOCUMENTATION = r'''
-    name: dna_center
+    name: wwt.ansible_dnac.dna_center
     plugin_type: inventory
     short_description: Returns Inventory from DNA Center
     description:

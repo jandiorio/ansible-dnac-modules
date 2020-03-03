@@ -9,7 +9,7 @@ namespace: wwt
 name: ansible_dnac
 
 # The version of the collection. Must be compatible with semantic versioning
-version: 1.1.4
+version: 1.1.5
 
 # The path to the Markdown (.md) readme file. This path is relative to the root of the collection
 readme: README.md
@@ -45,7 +45,7 @@ tags: [dnac, wwt, ansible_dnac]
 dependencies: {}
 
 # The URL of the originating SCM repository
-repository: https://github.com/jandiorio/ansible-dnac-modules/tree/v1.1.4
+repository: https://github.com/jandiorio/ansible-dnac-modules/tree/v1.1.5
 
 # The URL to any online docs
 documentation: ""
