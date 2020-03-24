@@ -1,26 +1,32 @@
-# Ansible Modules for DNA Center
+# Ansible Collection - wwt.ansible_dnac
 
-These modules provide declarative and idempotent access to configure the design elements of [Cisco's DNA Center](https://www.cisco.com/c/en/us/products/cloud-systems.../dna-center/index.html). 
+## Ansible Modules for DNA Center
 
-## DevNet Code Exchange 
+These modules provide declarative and idempotent access to configure the design elements of [Cisco's DNA Center](https://www.cisco.com/c/en/us/products/cloud-systems.../dna-center/index.html).
+
+### DevNet Code Exchange
 
 This repository is featured on the Cisco DevNet Code Exchange.
 
 [![published](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg)](https://developer.cisco.com/codeexchange/github/repo/jandiorio/ansible-dnac-modules)
 
+### Content
 
-## Content
+* The webinar below was hosted by Redhat and delivered by Jeff Andiorio of World Wide Technology on 8/7/2018.
 
-The webinar below was hosted by Redhat and delivered by Jeff Andiorio of World Wide Technology on 8/7/2018.  
+   [WWT / Redhat Ansible Webinar](https://www.ansible.com/resources/webinars-training/lab-automation-by-wwt-with-ansible-tower-and-cisco-dna-center)
 
-[WWT / Redhat Ansible Webinar](https://www.ansible.com/resources/webinars-training/lab-automation-by-wwt-with-ansible-tower-and-cisco-dna-center)
+* AnsibleFest 2019 Presentation
 
+   [DO I CHOOSE ANSIBLE, DNA CENTER OR BOTH?](https://www.ansible.com/do-i-choose-ansible-dna-center-or-both)
 
-Additional slides providing an overview of the modules can be found here:  [Ansible DNA Center Modules Overview](https://www.slideshare.net/secret/1l5xe5ORzTN3Uv)
+* Additional slides providing an overview of the modules can be found here:
 
-## Included Modules 
+   [Ansible DNA Center Modules Overview](https://www.slideshare.net/secret/1l5xe5ORzTN3Uv)
 
-The documentation can be viewed using  `ansible-doc` and will provide all of the details including examples of usage. 
+### Included Modules
+
+The documentation can be viewed using  `ansible-doc` and will provide all of the details including examples of usage.
 
 - `dnac_syslog`
 - `dnac_snmpv2_credential`
@@ -40,71 +46,124 @@ The documentation can be viewed using  `ansible-doc` and will provide all of the
 - `dnac_del_archived_config`
 - `dnac_netflow`
 - `dnac_timezone`
+- `dnac_wireless_ssid`
+- `dnac_wireless_provision`
+- `dnac_wireless_profile`
+
+## Inventory Plugin
+
+This collection also includes an inventory plugin enabling the use of DNA Center as the source of truth for inventory.
+
+1. Install the collection
+   ```shell
+   ansible-galaxy collection install wwt.ansible.dnac
+   ```
+2. Configure the plugin by creating a file named `dna_center.yml`.  This is the plugin configuration file and I usually save it in a directory named `inventory`.
+
+   ```yaml
+   plugin: dna_center
+   host: <your_dna_center>
+   validate_certs: <true or false>
+   use_dnac_mgmt_int: <true or false>
+   username: <username>
+   password: <vaulted password>
+   ```
+
+3. Enable the plugin by editing `ansible.cfg`
+
+   ```ini
+   [inventory]
+   enable_plugins =  wwt.ansible_dnac.dna_center
+   ```
+
+4. Validate it works
+
+   ```shell
+   ansible-inventory -i <path_to_dna_center.yaml> --graph --ask-vault-pass
+   ```
+
+   **Example output:**
+
+   ```shell
+    @all:
+      |--@barcelona:
+      |--@demo_environment:
+      |  |--@data_center_1:
+      |  |  |--DC1-Border-INET.campus.local
+      |  |  |--DC1-Border-MPLS.campus.local
+      |  |  |--csr-atc-integration.campus.local
+      |  |  |--dc1-nexus-7702.campus.local
+      |  |--@data_center_2:
+      |--@fira:
+      |--@tech_campus:
+      |  |--@bldg_56:
+      |  |  |--@dnac:
+      |  |  |  |--dc1-9300-a.campus.local
+      |  |  |  |--dc1-9300-b.campus.local
+      |  |  |  |--dc1-9500-a.campus.local
+      |  |  |  |--prod-9800wlc-01.campus.local
+      |--@the_cloud:
+      |  |--@aws:
+      |  |  |--FNH-HOSP-0BMT-WLC1A.us-east-2.compute.internal
+      |--@ungrouped:
+    /development/wwt/ansible_dnac #
+   ```
+
+## Geo Lookup Plugin
+
+This collection includes a lookup plugin which performs a resolution of the location provided to return the latitude and longitude.  When adding buildings in DNAC, an address is required as well as the lat/long of that address.  In the UI this resolution is performed for you.  This plugin provides that functionality in this collection.
+
+Below is an example task using the `geo` plugin.
+
+```yaml
+# DNA Center Create Buildings
+- name: create buildings
+  dnac_site:
+    host: "{{ inventory_hostname }}"
+    port: '443'
+    username: "{{ username }}"
+    password: "{{ password }}"
+    state: "{{ desired_state }}"
+    name: "{{ item.name }}"
+    site_type: "{{ item.site_type }}"
+    parent_name: "{{ item.parent_name }}"
+    address: "{{ item.building_address }}"
+    latitude: "{{ lookup('wwt.ansible_dnac.geo',item.building_address).latitude }}"
+    longitude: "{{ lookup('wwt.ansible_dnac.geo',item.building_address).longitude }}"
+  loop: "{{ sites }}"
+  when:  item.site_type == 'building'
+```
+
+> **NOTE:** The `geo` lookup plugin is completely optional.  Alternatively, you could manually resolve the lat/long and include them in the task.  See the `dnac_site` module documentation for more information.
 
 ## Requirements
+
+Ansible version 2.9 or later is required for installation using Ansible Collections.
 
 This solution requires the installation of the following python modules:
 
 - **geopy** to resolve building addresses and populate lat/long
   `pip install geopy`
-- **requests** for http requests 
+- **requests** for http requests
   `pip install requests`
-- **timezonefinder** for resolving the timezone based on physical address 
+- **timezonefinder** for resolving the timezone based on physical address
   `pip install timezonefinder==3.4.2`
 
 ## Installation
 
-Follow these steps to prepare the environment and being using the modules. 
+These Ansible modules have now been packaged into an Ansible Collection.
 
-**STEP 1.**  Locate your ansible library path: `ansible --version`
-
-```shell
-vagrant@ubuntu-xenial:~$ ansible --version
-ansible 2.7.9
-  config file = /etc/ansible/ansible.cfg
-  configured module search path = [u'/home/vagrant/.ansible/plugins/modules', u'/usr/share/ansible/plugins/modules']
-  ansible python module location = /usr/lib/python2.7/dist-packages/ansible
-  executable location = /usr/bin/ansible
-  python version = 2.7.12 (default, Nov 12 2018, 14:36:49) [GCC 5.4.0 20160609]
-```
-
-**STEP 2.**  Change to the ansible library path: example: `cd /Library/Python/2.7/site-packages/ansible` 
+**STEP 1.** Install the `ansible_dnac` collection
 
 ```shell
-vagrant@ubuntu-xenial:~$ cd /usr/lib/python2.7/dist-packages/ansible
-
+ansible-galaxy collection install wwt.ansible_dnac
 ```
 
-**STEP 3.**  Create a new directory in module_utils/network named dnac: `mkdir module_utils/network/dnac` 
+**STEP 2.**  Validation that the modules have been installed properly can be performed by executing:
 
-```shell
-vagrant@ubuntu-xenial:/usr/lib/python2.7/dist-packages/ansible$ sudo mkdir module_utils/network/dnac
-```
+`ansible-doc wwt.ansible_dnac.dnac_dhcp`
 
-**STEP 4.**  Copy file `dnac.py` to module_utils/network/dnac folder
-
-```shell
-vagrant@ubuntu-xenial:/usr/lib/python2.7/dist-packages/ansible$ sudo cp ~/ansible-dnac-modules/dnac.py module_utils/network/dnac/.
-```
-
-**STEP 5.**  Copy all other *.py files to the location of your ansible custom modules. (mine is /usr/share/ansible)
-
-```shell
-​```shell
-vagrant@ubuntu-xenial:~/ansible-dnac-modules$ sudo mkdir -p /usr/share/ansible/plugins/modules
-vagrant@ubuntu-xenial:~/ansible-dnac-modules$ sudo cp *.py /usr/share/ansible/plugins/modules
-vagrant@ubuntu-xenial:~/ansible-dnac-modules$ ls /usr/share/ansible/plugins/modules
-dnac_activate_credential.py  dnac_cli_credential.py       dnac_device_role.py  dnac_dns.py     dnac_netflow.py  dnac_snmp.py               dnac_timezone.py
-dnac_archive_config.py       dnac_del_archived_config.py  dnac_dhcp.py         dnac_group.py   dnac_ntp.py      dnac_snmpv2_credential.py
-dnac_banner.py               dnac_device_assign_site.py   dnac_discovery.py    dnac_ippool.py  dnac.py          dnac_syslog.py
-
-```
-
-**STEP 6.**  Validation that the modules have been installed properly can be performed by executing:
-
-`ansible-doc dnac_dhcp`
-
-If the results show the module documentation your installation was successful. 
+If the results show the module documentation your installation was successful.
 
 ```shell
 vagrant@ubuntu-xenial:~/ansible-dnac-modules$ ansible-doc dnac_dhcp
@@ -132,9 +191,12 @@ hosts: localhost
 gather_facts: false
 no_log: true
 
+collections:
+  - wwt.ansible_dnac
+
 tasks:
 
-- name: set the banner  
+- name: set the banner
   dnac_banner:
     host: 10.253.176.237
     port: 443
@@ -197,4 +259,4 @@ tasks:
 
 ## Author
 
-**Jeff Andiorio** - World Wide Technology 
+**Jeff Andiorio** - World Wide Technology
