@@ -57,7 +57,7 @@ This collection also includes an inventory plugin enabling the use of DNA Center
 
 1. Install the collection
    ```shell
-   ansible-galaxy install wwt.ansible.dnac
+   ansible-galaxy collection install wwt.ansible.dnac
    ```
 2. Configure the plugin by creating a file named `dna_center.yml`.  This is the plugin configuration file and I usually save it in a directory named `inventory`.
 
@@ -157,7 +157,7 @@ These Ansible modules have now been packaged into an Ansible Collection.
 **STEP 1.** Install the `ansible_dnac` collection
 
 ```shell
-ansible-galaxy install wwt.ansible_dnac
+ansible-galaxy collection install wwt.ansible_dnac
 ```
 
 **STEP 2.**  Validation that the modules have been installed properly can be performed by executing:
